@@ -1,0 +1,52 @@
+# Node.js - backend & frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Vite build
+dist/
+.vite/
+
+# Logs
+logs/
+*.log
+
+# dotenv
+.env
+.env.local
+.env.*.local
+
+# MySQL dump or db temp files
+*.sql
+*.sqlite
+*.db
+*.pid
+
+# Mac system files
+.DS_Store
+
+# VSCode / IDE configs
+.vscode/
+.idea/
+*.sw?
+
+# Coverage & test output
+coverage/
+.nyc_output/
+
+# OS-specific
+Thumbs.db
+ehthumbs.db
+
+# Frontend build
+front/dist/
+front/.vite/
+
+# Backend build (si transpilation future)
+back/build/
+
+# Optional: Docker / deployment
+docker-compose.override.yml
+.env.production
