@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const authRoutes = require('./routes/auth.routes');
 const authenticateToken = require('./middlewares/authMiddleware');
+const clientRoutes = require('./routes/client.routes');
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.use(cors());
 app.use(helmet());
 app.use(express.json());
 app.use('/auth', authRoutes);
+app.use('/clients', clientRoutes);
 
 // Route de test
 app.get('/', (req, res) => {
