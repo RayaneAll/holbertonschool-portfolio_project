@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const authRoutes = require('./routes/auth.routes');
 const authenticateToken = require('./middlewares/authMiddleware');
 const clientRoutes = require('./routes/client.routes');
+const productRoutes = require('./routes/product.routes');
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(helmet());
 app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/clients', clientRoutes);
+app.use('/products', productRoutes);
 
 // Route de test
 app.get('/', (req, res) => {
