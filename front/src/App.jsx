@@ -1,26 +1,55 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import Dashboard from './pages/Dashboard';
-import Clients from './pages/Clients';
-import Products from './pages/Products';
-import Invoices from './pages/Invoices';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Login from './pages/Login';
+import { ThemeProvider, createTheme } from '@mui/material';
 
-const isLoggedIn = () => {
-  return !!localStorage.getItem('token');
+// Création du thème
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
+
+// Composant pour protéger les routes
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <div>Chargement...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
 };
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={isLoggedIn() ? <Dashboard /> : <Navigate to="/login" />} />
-        <Route path="/clients" element={isLoggedIn() ? <Clients /> : <Navigate to="/login" />} />
-        <Route path="/products" element={isLoggedIn() ? <Products /> : <Navigate to="/login" />} />
-        <Route path="/invoices" element={isLoggedIn() ? <Invoices /> : <Navigate to="/login" />} />
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
-    </Router>
+    <ThemeProvider theme={theme}>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <div>Dashboard (à implémenter)</div>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
