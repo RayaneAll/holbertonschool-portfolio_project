@@ -13,6 +13,7 @@ import {
   Toolbar,
   Typography,
   Divider,
+  ListItemButton,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -63,25 +64,24 @@ const Layout = ({ children }) => {
       <Divider />
       <List>
         {menuItems.map((item) => (
-          <ListItem
-            button
+          <ListItemButton
             key={item.text}
             onClick={() => handleNavigation(item.path)}
             selected={location.pathname === item.path}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
-          </ListItem>
+          </ListItemButton>
         ))}
       </List>
       <Divider />
       <List>
-        <ListItem button onClick={handleLogout}>
+        <ListItemButton onClick={handleLogout}>
           <ListItemIcon>
             <LogoutIcon />
           </ListItemIcon>
           <ListItemText primary="Déconnexion" />
-        </ListItem>
+        </ListItemButton>
       </List>
     </div>
   );

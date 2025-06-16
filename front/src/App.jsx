@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme } from '@mui/material';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
+import Clients from './pages/Clients';
 
 // Création du thème
 const theme = createTheme({
@@ -51,7 +52,7 @@ function App() {
               path="/clients"
               element={
                 <ProtectedRoute>
-                  <div>Clients (à implémenter)</div>
+                  <Clients />
                 </ProtectedRoute>
               }
             />
