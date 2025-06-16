@@ -1,4 +1,3 @@
-// back/controllers/productController.js
 const db = require('../models');
 
 const getAllProducts = async (req, res) => {

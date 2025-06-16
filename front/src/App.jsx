@@ -1,7 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Login from './pages/Login';
 import { ThemeProvider, createTheme } from '@mui/material';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Layout from './components/Layout';
 
 // Création du thème
 const theme = createTheme({
@@ -27,7 +29,7 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" />;
   }
 
-  return children;
+  return <Layout>{children}</Layout>;
 };
 
 function App() {
@@ -41,7 +43,31 @@ function App() {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <div>Dashboard (à implémenter)</div>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/clients"
+              element={
+                <ProtectedRoute>
+                  <div>Clients (à implémenter)</div>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/products"
+              element={
+                <ProtectedRoute>
+                  <div>Produits (à implémenter)</div>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invoices"
+              element={
+                <ProtectedRoute>
+                  <div>Factures (à implémenter)</div>
                 </ProtectedRoute>
               }
             />

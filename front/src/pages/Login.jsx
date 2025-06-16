@@ -34,12 +34,22 @@ const Login = () => {
     },
     validationSchema,
     onSubmit: async (values) => {
+      console.log('Tentative de connexion avec:', values.email);
       setError('');
-      const result = await login(values.email, values.password);
-      if (result.success) {
-        navigate('/dashboard');
-      } else {
-        setError(result.error);
+      try {
+        const result = await login(values.email, values.password);
+        console.log('Résultat de la connexion:', result);
+        if (result.success) {
+          console.log('Redirection vers /dashboard');
+          navigate('/dashboard');
+          window.location.href = '/dashboard';
+        } else {
+          console.log('Erreur de connexion:', result.error);
+          setError(result.error);
+        }
+      } catch (err) {
+        console.error('Erreur lors de la connexion:', err);
+        setError('Une erreur est survenue lors de la connexion');
       }
     },
   });
