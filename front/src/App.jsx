@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
 import Clients from './pages/Clients';
+import Products from './pages/Products';
 
 // Création du thème
 const theme = createTheme({
@@ -37,8 +38,8 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <AuthProvider>
-        <Router>
-          <Routes>
+    <Router>
+      <Routes>
             <Route path="/login" element={<Login />} />
             <Route
               path="/dashboard"
@@ -60,7 +61,7 @@ function App() {
               path="/products"
               element={
                 <ProtectedRoute>
-                  <div>Produits (à implémenter)</div>
+                  <Products />
                 </ProtectedRoute>
               }
             />
@@ -73,8 +74,8 @@ function App() {
               }
             />
             <Route path="/" element={<Navigate to="/dashboard" />} />
-          </Routes>
-        </Router>
+      </Routes>
+    </Router>
       </AuthProvider>
     </ThemeProvider>
   );

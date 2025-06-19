@@ -11,8 +11,8 @@ const getAllProducts = async (req, res) => {
 
 const createProduct = async (req, res) => {
   try {
-    const { name, price, stock } = req.body;
-    const product = await db.Product.create({ name, price, stock });
+    const { name, description, price, stock } = req.body;
+    const product = await db.Product.create({ name, description, price, stock });
     res.status(201).json(product);
   } catch (err) {
     res.status(500).json({ error: 'Error creating product' });
