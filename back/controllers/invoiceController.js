@@ -42,26 +42,32 @@ const createInvoice = async (req, res) => {
   try {
     const { clientId, date, status, items } = req.body;
 
-    // Calcul total
-    let total = 0;
+    // Recréer les items avec le prix sécurisé de la DB
+    const securedItems = [];
     for (const item of items) {
       const product = await db.Product.findByPk(item.productId);
       if (!product) throw new Error(`Product ${item.productId} not found`);
-      total += item.price * item.quantity;
+      securedItems.push({
+        ...item,
+        price: product.price, // Utilise le prix de la DB
+      });
     }
+
+    // Calcul total avec les prix sécurisés
+    const total = securedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     const invoice = await db.Invoice.create(
       { ClientId: clientId, date, total, status },
       { transaction: t }
     );
 
-    for (const item of items) {
+    for (const item of securedItems) {
       await db.InvoiceItem.create(
         {
           InvoiceId: invoice.id,
           ProductId: item.productId,
           quantity: item.quantity,
-          price: item.price,
+          price: item.price, // Sauvegarde le prix sécurisé
         },
         { transaction: t }
       );
@@ -122,8 +128,19 @@ const updateInvoice = async (req, res) => {
       return res.status(404).json({ message: 'Facture non trouvée' });
     }
 
-    // Calculer le nouveau total
-    const total = items.reduce((acc, item) => acc + item.quantity * item.price, 0);
+    // Recréer les items avec le prix sécurisé de la DB
+    const securedItems = [];
+    for (const item of items) {
+      const product = await db.Product.findByPk(item.productId);
+      if (!product) throw new Error(`Product ${item.productId} not found`);
+      securedItems.push({
+        ...item,
+        price: product.price, // Utilise le prix de la DB
+      });
+    }
+
+    // Calculer le nouveau total avec les prix sécurisés
+    const total = securedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     // Mettre à jour la facture
     await invoice.update({ ClientId: clientId, date, total }, { transaction: t });
@@ -131,11 +148,12 @@ const updateInvoice = async (req, res) => {
     // Supprimer les anciens items
     await db.InvoiceItem.destroy({ where: { InvoiceId: id }, transaction: t });
 
-    // Ajouter les nouveaux items
-    const invoiceItems = items.map(item => ({
-      ...item,
+    // Ajouter les nouveaux items (sécurisés)
+    const invoiceItems = securedItems.map(item => ({
       InvoiceId: invoice.id,
       ProductId: item.productId,
+      quantity: item.quantity,
+      price: item.price,
     }));
     await db.InvoiceItem.bulkCreate(invoiceItems, { transaction: t });
 

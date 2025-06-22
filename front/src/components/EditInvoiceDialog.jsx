@@ -139,8 +139,12 @@ const EditInvoiceDialog = ({ open, onClose, invoice, onInvoiceUpdated }) => {
                             <Select
                               name={`items[${idx}].productId`}
                               value={item.productId}
-                              onChange={formik.handleChange}
                               label="Produit"
+                              onChange={(e) => {
+                                formik.handleChange(e);
+                                const selectedProduct = products.find(p => p.id === e.target.value);
+                                formik.setFieldValue(`items[${idx}].price`, selectedProduct ? selectedProduct.price : 0);
+                              }}
                             >
                               {products.map((p) => (
                                 <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
@@ -162,6 +166,7 @@ const EditInvoiceDialog = ({ open, onClose, invoice, onInvoiceUpdated }) => {
                             value={item.price}
                             onChange={formik.handleChange}
                             sx={{ width: 120 }}
+                            disabled
                           />
                           <IconButton onClick={() => arrayHelpers.remove(idx)} disabled={formik.values.items.length === 1}>
                             <Remove />

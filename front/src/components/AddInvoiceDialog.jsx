@@ -110,14 +110,17 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
                 <Box>
                   {formik.values.items.map((item, idx) => (
                     <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1 }}>
-                      <FormControl sx={{ minWidth: 120 }}>
-                        <InputLabel id={`product-label-${idx}`}>Produit</InputLabel>
+                      <FormControl sx={{ flex: 1 }}>
+                        <InputLabel>Produit</InputLabel>
                         <Select
-                          labelId={`product-label-${idx}`}
                           name={`items[${idx}].productId`}
                           value={item.productId}
-                          onChange={formik.handleChange}
                           label="Produit"
+                          onChange={(e) => {
+                            formik.handleChange(e);
+                            const selectedProduct = products.find(p => p.id === e.target.value);
+                            formik.setFieldValue(`items[${idx}].price`, selectedProduct ? selectedProduct.price : 0);
+                          }}
                         >
                           {products.map((p) => (
                             <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
@@ -139,6 +142,7 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
                         value={item.price}
                         onChange={formik.handleChange}
                         sx={{ width: 120 }}
+                        disabled
                       />
                       <IconButton onClick={() => arrayHelpers.remove(idx)} disabled={formik.values.items.length === 1}>
                         <Remove />
