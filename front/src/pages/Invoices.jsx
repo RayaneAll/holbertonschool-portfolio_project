@@ -1,0 +1,219 @@
+import { useEffect, useState } from 'react';
+import {
+  Box,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress,
+  Alert,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  IconButton,
+  Collapse
+} from '@mui/material';
+import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
+import api from '../services/api';
+import AddInvoiceDialog from '../components/AddInvoiceDialog';
+import EditInvoiceDialog from '../components/EditInvoiceDialog';
+
+const Row = (props) => {
+  const { row, onEditClick, onDeleteClick } = props;
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+        <TableCell>
+          <IconButton
+            aria-label="expand row"
+            size="small"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+          </IconButton>
+        </TableCell>
+        <TableCell component="th" scope="row">
+          {row.id}
+        </TableCell>
+        <TableCell>{row.date ? new Date(row.date).toLocaleDateString() : ''}</TableCell>
+        <TableCell>{row.Client?.name || ''}</TableCell>
+        <TableCell>{row.total} €</TableCell>
+        <TableCell>
+          <Button size="small" variant="outlined" color="primary" sx={{ mr: 1 }} onClick={() => onEditClick(row)}>
+            Modifier
+          </Button>
+          <Button size="small" variant="outlined" color="error" onClick={() => onDeleteClick(row)}>
+            Supprimer
+          </Button>
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+              <Typography variant="h6" gutterBottom component="div">
+                Détails
+              </Typography>
+              <Table size="small" aria-label="purchases">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Produit</TableCell>
+                    <TableCell>Quantité</TableCell>
+                    <TableCell>Prix Unitaire</TableCell>
+                    <TableCell>Total</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {row.InvoiceItems?.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.Product?.name}</TableCell>
+                      <TableCell>{item.quantity}</TableCell>
+                      <TableCell>{item.price} €</TableCell>
+                      <TableCell>{(item.quantity * item.price).toFixed(2)} €</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
+  );
+};
+
+const Invoices = () => {
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [invoiceToEdit, setInvoiceToEdit] = useState(null);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const response = await api.get('/invoices');
+        setInvoices(response.data);
+      } catch (err) {
+        setError("Erreur lors du chargement des factures");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInvoices();
+  }, []);
+
+  const handleInvoiceAdded = (newInvoice) => {
+    setInvoices((prev) => [...prev, newInvoice]);
+  };
+
+  const handleDeleteClick = (invoice) => {
+    setInvoiceToDelete(invoice);
+    setDeleteDialogOpen(true);
+    setDeleteError('');
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!invoiceToDelete) return;
+    setDeleteError('');
+    try {
+      await api.delete(`/invoices/${invoiceToDelete.id}`);
+      setInvoices((prev) => prev.filter((inv) => inv.id !== invoiceToDelete.id));
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
+    } catch (err) {
+      setDeleteError(err.response?.data?.message || "Erreur lors de la suppression de la facture");
+    }
+  };
+
+  const handleEditClick = (invoice) => {
+    setInvoiceToEdit(invoice);
+    setEditDialogOpen(true);
+  };
+
+  const handleInvoiceUpdated = (updatedInvoice) => {
+    setInvoices((prev) => prev.map((inv) => (inv.id === updatedInvoice.id ? updatedInvoice : inv)));
+    setEditDialogOpen(false);
+  };
+
+  return (
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Factures
+      </Typography>
+      <Button variant="contained" color="primary" sx={{ mb: 2 }} onClick={() => setOpenDialog(true)}>
+        Ajouter une facture
+      </Button>
+      <AddInvoiceDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onInvoiceAdded={handleInvoiceAdded}
+      />
+      {invoiceToEdit && (
+        <EditInvoiceDialog
+          open={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          invoice={invoiceToEdit}
+          onInvoiceUpdated={handleInvoiceUpdated}
+        />
+      )}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Confirmer la suppression</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Êtes-vous sûr de vouloir supprimer la facture n°{invoiceToDelete?.id} ? Cette action est irréversible.
+          </DialogContentText>
+          {deleteError && <Alert severity="error" sx={{ mt: 2 }}>{deleteError}</Alert>}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Annuler</Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+            Supprimer
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Alert severity="error">{error}</Alert>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell />
+                <TableCell>Numéro</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Client</TableCell>
+                <TableCell>Montant</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {invoices.map((invoice) => (
+                <Row key={invoice.id} row={invoice} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} />
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Box>
+  );
+};
+
+export default Invoices;

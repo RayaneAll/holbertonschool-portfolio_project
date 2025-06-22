@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
 import Clients from './pages/Clients';
 import Products from './pages/Products';
+import Invoices from './pages/Invoices';
 
 // Création du thème
 const theme = createTheme({
@@ -69,7 +70,7 @@ function App() {
               path="/invoices"
               element={
                 <ProtectedRoute>
-                  <div>Factures (à implémenter)</div>
+                  <Invoices />
                 </ProtectedRoute>
               }
             />
