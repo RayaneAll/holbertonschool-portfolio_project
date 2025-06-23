@@ -127,13 +127,14 @@ const Products = () => {
                 <TableCell>Nom</TableCell>
                 <TableCell>Prix</TableCell>
                 <TableCell>Stock</TableCell>
+                <TableCell>Description</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {products.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center">
+                  <TableCell colSpan={5} align="center">
                     Aucun produit trouvé.
                   </TableCell>
                 </TableRow>
@@ -143,6 +144,7 @@ const Products = () => {
                     <TableCell>{product.name}</TableCell>
                     <TableCell>{product.price} €</TableCell>
                     <TableCell>{product.stock}</TableCell>
+                    <TableCell>{product.description ? (product.description.length > 100 ? product.description.slice(0, 100) + '…' : product.description) : ''}</TableCell>
                     <TableCell>
                       <Button size="small" variant="outlined" color="primary" sx={{ mr: 1 }} onClick={() => handleEditClick(product)}>
                         Modifier

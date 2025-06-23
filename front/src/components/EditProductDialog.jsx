@@ -16,6 +16,7 @@ const validationSchema = Yup.object({
   name: Yup.string().required('Nom requis'),
   price: Yup.number().typeError('Prix invalide').min(0, 'Prix >= 0').required('Prix requis'),
   stock: Yup.number().typeError('Stock invalide').min(0, 'Stock >= 0').required('Stock requis'),
+  description: Yup.string().max(500, '500 caractères max'),
 });
 
 const EditProductDialog = ({ open, onClose, product, onProductUpdated }) => {
@@ -28,6 +29,7 @@ const EditProductDialog = ({ open, onClose, product, onProductUpdated }) => {
       name: product?.name || '',
       price: product?.price || '',
       stock: product?.stock || '',
+      description: product?.description || '',
     },
     validationSchema,
     onSubmit: async (values) => {
@@ -86,6 +88,19 @@ const EditProductDialog = ({ open, onClose, product, onProductUpdated }) => {
             onChange={formik.handleChange}
             error={formik.touched.stock && Boolean(formik.errors.stock)}
             helperText={formik.touched.stock && formik.errors.stock}
+          />
+          <TextField
+            margin="dense"
+            label="Description"
+            name="description"
+            fullWidth
+            multiline
+            minRows={2}
+            maxRows={4}
+            value={formik.values.description}
+            onChange={formik.handleChange}
+            error={formik.touched.description && Boolean(formik.errors.description)}
+            helperText={formik.touched.description && formik.errors.description}
           />
         </DialogContent>
         <DialogActions>

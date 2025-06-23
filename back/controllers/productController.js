@@ -34,8 +34,8 @@ const updateProduct = async (req, res) => {
     const product = await db.Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    const { name, price, stock } = req.body;
-    await product.update({ name, price, stock });
+    const { name, description, price, stock } = req.body;
+    await product.update({ name, description, price, stock });
     res.json(product);
   } catch (err) {
     res.status(500).json({ error: 'Error updating product' });
