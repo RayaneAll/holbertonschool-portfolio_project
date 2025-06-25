@@ -42,7 +42,11 @@ const createInvoice = async (req, res) => {
   try {
     const { clientId, date, status, items } = req.body;
 
-    // Recréer les items avec le prix sécurisé de la DB
+    // Récupérer les infos du client
+    const client = await db.Client.findByPk(clientId);
+    if (!client) throw new Error(`Client ${clientId} not found`);
+
+    // Recréer les items avec les infos figées du produit
     const securedItems = [];
     for (const item of items) {
       const product = await db.Product.findByPk(item.productId);
@@ -50,6 +54,9 @@ const createInvoice = async (req, res) => {
       securedItems.push({
         ...item,
         price: product.price, // Utilise le prix de la DB
+        productName: product.name,
+        productDescription: product.description,
+        productPrice: product.price,
       });
     }
 
@@ -57,7 +64,15 @@ const createInvoice = async (req, res) => {
     const total = securedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     const invoice = await db.Invoice.create(
-      { ClientId: clientId, date, total, status },
+      {
+        ClientId: clientId,
+        date,
+        total,
+        status,
+        clientName: client.name,
+        clientEmail: client.email,
+        clientPhone: client.phone,
+      },
       { transaction: t }
     );
 
@@ -68,6 +83,9 @@ const createInvoice = async (req, res) => {
           ProductId: item.productId,
           quantity: item.quantity,
           price: item.price, // Sauvegarde le prix sécurisé
+          productName: item.productName,
+          productDescription: item.productDescription,
+          productPrice: item.productPrice,
         },
         { transaction: t }
       );
@@ -128,7 +146,11 @@ const updateInvoice = async (req, res) => {
       return res.status(404).json({ message: 'Facture non trouvée' });
     }
 
-    // Recréer les items avec le prix sécurisé de la DB
+    // Récupérer les infos du client
+    const client = await db.Client.findByPk(clientId);
+    if (!client) throw new Error(`Client ${clientId} not found`);
+
+    // Recréer les items avec les infos figées du produit
     const securedItems = [];
     for (const item of items) {
       const product = await db.Product.findByPk(item.productId);
@@ -136,6 +158,9 @@ const updateInvoice = async (req, res) => {
       securedItems.push({
         ...item,
         price: product.price, // Utilise le prix de la DB
+        productName: product.name,
+        productDescription: product.description,
+        productPrice: product.price,
       });
     }
 
@@ -143,7 +168,14 @@ const updateInvoice = async (req, res) => {
     const total = securedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     // Mettre à jour la facture
-    await invoice.update({ ClientId: clientId, date, total }, { transaction: t });
+    await invoice.update({
+      ClientId: clientId,
+      date,
+      total,
+      clientName: client.name,
+      clientEmail: client.email,
+      clientPhone: client.phone,
+    }, { transaction: t });
 
     // Supprimer les anciens items
     await db.InvoiceItem.destroy({ where: { InvoiceId: id }, transaction: t });
@@ -154,6 +186,9 @@ const updateInvoice = async (req, res) => {
       ProductId: item.productId,
       quantity: item.quantity,
       price: item.price,
+      productName: item.productName,
+      productDescription: item.productDescription,
+      productPrice: item.productPrice,
     }));
     await db.InvoiceItem.bulkCreate(invoiceItems, { transaction: t });
 

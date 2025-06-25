@@ -12,6 +12,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       defaultValue: 'pending',
     },
+    clientName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    clientEmail: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    clientPhone: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   });
 
   return Invoice;

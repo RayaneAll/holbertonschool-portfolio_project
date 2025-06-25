@@ -7,7 +7,19 @@ module.exports = (sequelize, DataTypes) => {
     price: {
       type: DataTypes.FLOAT,
       allowNull: false,
-    }
+    },
+    productName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    productDescription: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    productPrice: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
   });
 
   return InvoiceItem;

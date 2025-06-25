@@ -45,7 +45,7 @@ const Row = (props) => {
           {row.id}
         </TableCell>
         <TableCell>{row.date ? new Date(row.date).toLocaleDateString() : ''}</TableCell>
-        <TableCell>{row.Client?.name || ''}</TableCell>
+        <TableCell>{row.clientName || row.Client?.name || ''}</TableCell>
         <TableCell>{row.total} €</TableCell>
         <TableCell>
           <Button size="small" variant="outlined" color="primary" sx={{ mr: 1 }} onClick={() => onEditClick(row)}>
@@ -67,6 +67,7 @@ const Row = (props) => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Produit</TableCell>
+                    <TableCell>Description</TableCell>
                     <TableCell>Quantité</TableCell>
                     <TableCell>Prix Unitaire</TableCell>
                     <TableCell>Total</TableCell>
@@ -75,10 +76,11 @@ const Row = (props) => {
                 <TableBody>
                   {row.InvoiceItems?.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell>{item.Product?.name}</TableCell>
+                      <TableCell>{item.productName || item.Product?.name}</TableCell>
+                      <TableCell>{item.productDescription || item.Product?.description || ''}</TableCell>
                       <TableCell>{item.quantity}</TableCell>
-                      <TableCell>{item.price} €</TableCell>
-                      <TableCell>{(item.quantity * item.price).toFixed(2)} €</TableCell>
+                      <TableCell>{item.productPrice !== undefined ? item.productPrice : item.price} €</TableCell>
+                      <TableCell>{(item.quantity * (item.productPrice !== undefined ? item.productPrice : item.price)).toFixed(2)} €</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -205,9 +207,17 @@ const Invoices = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {invoices.map((invoice) => (
-                <Row key={invoice.id} row={invoice} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} />
-              ))}
+              {invoices.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    Aucune facture trouvée.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                invoices.map((invoice) => (
+                  <Row key={invoice.id} row={invoice} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} />
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
