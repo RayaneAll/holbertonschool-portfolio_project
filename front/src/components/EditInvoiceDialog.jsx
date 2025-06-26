@@ -126,56 +126,88 @@ const EditInvoiceDialog = ({ open, onClose, invoice, onInvoiceUpdated }) => {
                 value={formik.values.date}
                 onChange={formik.handleChange}
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ max: new Date().toISOString().slice(0, 10) }}
               />
+              {(() => {
+                const selectedDate = new Date(formik.values.date);
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                selectedDate.setHours(0,0,0,0);
+                const diffDays = Math.floor((today - selectedDate) / (1000 * 60 * 60 * 24));
+                if (diffDays > 30) {
+                  return <Alert severity="warning" sx={{ mb: 2 }}>Attention : la date de facture est très ancienne ({diffDays} jours dans le passé).</Alert>;
+                }
+                return null;
+              })()}
               <FormikProvider value={formik}>
                 <FieldArray
                   name="items"
                   render={arrayHelpers => (
                     <Box>
-                      {formik.values.items.map((item, idx) => (
-                        <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1 }}>
-                          <FormControl sx={{ flex: 1 }}>
-                            <InputLabel>Produit</InputLabel>
-                            <Select
-                              name={`items[${idx}].productId`}
-                              value={item.productId}
-                              label="Produit"
-                              onChange={(e) => {
-                                formik.handleChange(e);
-                                const selectedProduct = products.find(p => p.id === e.target.value);
-                                formik.setFieldValue(`items[${idx}].price`, selectedProduct ? selectedProduct.price : 0);
+                      {formik.values.items.map((item, idx) => {
+                        const selectedProduct = products.find(p => p.id === item.productId);
+                        const maxQty = selectedProduct ? selectedProduct.stock : Infinity;
+                        const isOutOfStock = selectedProduct && selectedProduct.stock === 0;
+                        const qtyError = item.quantity > maxQty;
+                        return (
+                          <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1 }}>
+                            <FormControl sx={{ flex: 1 }}>
+                              <InputLabel>Produit</InputLabel>
+                              <Select
+                                name={`items[${idx}].productId`}
+                                value={item.productId}
+                                label="Produit"
+                                onChange={(e) => {
+                                  formik.handleChange(e);
+                                  const selected = products.find(p => p.id === e.target.value);
+                                  formik.setFieldValue(`items[${idx}].price`, selected ? selected.price : 0);
+                                  if (selected && item.quantity > selected.stock) {
+                                    formik.setFieldValue(`items[${idx}].quantity`, selected.stock > 0 ? 1 : 0);
+                                  }
+                                }}
+                              >
+                                {products.map((p) => (
+                                  <MenuItem key={p.id} value={p.id} disabled={p.stock === 0}>
+                                    {p.name} {p.stock === 0 ? '(Rupture de stock)' : ''}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            <TextField
+                              label="Quantité"
+                              name={`items[${idx}].quantity`}
+                              type="number"
+                              value={item.quantity}
+                              onChange={e => {
+                                let value = Number(e.target.value);
+                                if (selectedProduct && value > selectedProduct.stock) value = selectedProduct.stock;
+                                if (value < 1) value = 1;
+                                formik.setFieldValue(`items[${idx}].quantity`, value);
                               }}
-                            >
-                              {products.map((p) => (
-                                <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                          <TextField
-                            label="Quantité"
-                            name={`items[${idx}].quantity`}
-                            type="number"
-                            value={item.quantity}
-                            onChange={formik.handleChange}
-                            sx={{ width: 100 }}
-                          />
-                          <TextField
-                            label="Prix (€)"
-                            name={`items[${idx}].price`}
-                            type="number"
-                            value={item.price}
-                            onChange={formik.handleChange}
-                            sx={{ width: 120 }}
-                            disabled
-                          />
-                          <IconButton onClick={() => arrayHelpers.remove(idx)} disabled={formik.values.items.length === 1}>
-                            <Remove />
-                          </IconButton>
-                          <IconButton onClick={() => arrayHelpers.insert(idx + 1, { productId: '', quantity: 1, price: 0 })}>
-                            <Add />
-                          </IconButton>
-                        </Box>
-                      ))}
+                              sx={{ width: 100 }}
+                              inputProps={{ min: 1, max: maxQty }}
+                              error={qtyError}
+                              helperText={qtyError ? `Stock max : ${maxQty}` : ''}
+                              disabled={isOutOfStock}
+                            />
+                            <TextField
+                              label="Prix (€)"
+                              name={`items[${idx}].price`}
+                              type="number"
+                              value={item.price}
+                              onChange={formik.handleChange}
+                              sx={{ width: 120 }}
+                              disabled
+                            />
+                            <IconButton onClick={() => arrayHelpers.remove(idx)} disabled={formik.values.items.length === 1}>
+                              <Remove />
+                            </IconButton>
+                            <IconButton onClick={() => arrayHelpers.insert(idx + 1, { productId: '', quantity: 1, price: 0 })}>
+                              <Add />
+                            </IconButton>
+                          </Box>
+                        );
+                      })}
                     </Box>
                   )}
                 />
