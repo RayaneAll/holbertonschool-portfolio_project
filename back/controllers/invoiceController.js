@@ -1,4 +1,5 @@
 const db = require('../models');
+const puppeteer = require('puppeteer');
 
 const getAllInvoices = async (req, res) => {
   try {
@@ -258,10 +259,104 @@ const updateInvoice = async (req, res) => {
   }
 };
 
+// Génération PDF d'une facture
+const downloadInvoicePDF = async (req, res) => {
+  try {
+    const invoice = await db.Invoice.findByPk(req.params.id, {
+      include: [
+        { model: db.Client },
+        {
+          model: db.InvoiceItem,
+          include: [db.Product],
+        },
+      ],
+    });
+    if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+
+    // Template HTML moderne (tu pourras l'améliorer à volonté)
+    const html = `
+      <html>
+      <head>
+        <meta charset='utf-8'>
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background: #f7f9fb; }
+          .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+          .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1976d2; padding-bottom: 16px; margin-bottom: 24px; }
+          .logo { font-size: 2rem; font-weight: bold; color: #1976d2; letter-spacing: 2px; }
+          .title { font-size: 1.5rem; color: #333; }
+          .info { margin-bottom: 24px; }
+          .info strong { color: #1976d2; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+          th, td { padding: 10px 8px; border-bottom: 1px solid #e0e0e0; text-align: left; }
+          th { background: #1976d2; color: #fff; font-weight: 600; }
+          .total { font-size: 1.2rem; font-weight: bold; color: #1976d2; text-align: right; }
+          .footer { font-size: 0.9rem; color: #888; text-align: center; margin-top: 32px; }
+        </style>
+      </head>
+      <body>
+        <div class='container'>
+          <div class='header'>
+            <div class='logo'>ERP System</div>
+            <div class='title'>Facture n°${invoice.id}</div>
+          </div>
+          <div class='info'>
+            <div><strong>Date :</strong> ${new Date(invoice.date).toLocaleDateString()}</div>
+            <div><strong>Client :</strong> ${invoice.clientName || invoice.Client?.name || ''}</div>
+            <div><strong>Email :</strong> ${invoice.clientEmail || invoice.Client?.email || ''}</div>
+            <div><strong>Téléphone :</strong> ${invoice.clientPhone || invoice.Client?.phone || ''}</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Description</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${invoice.InvoiceItems.map(item => `
+                <tr>
+                  <td>${item.productName || item.Product?.name || ''}</td>
+                  <td>${item.productDescription || item.Product?.description || ''}</td>
+                  <td>${item.quantity}</td>
+                  <td>${item.productPrice !== undefined ? item.productPrice : item.price} €</td>
+                  <td>${(item.quantity * (item.productPrice !== undefined ? item.productPrice : item.price)).toFixed(2)} €</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class='total'>Total : ${invoice.total.toFixed(2)} €</div>
+          <div class='footer'>Document généré par ERP System • ${new Date().toLocaleDateString()}</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Génération du PDF avec puppeteer
+    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
+    await browser.close();
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="facture_${invoice.id}.pdf"`
+    });
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error('Erreur génération PDF :', err);
+    res.status(500).json({ error: 'Erreur lors de la génération du PDF' });
+  }
+};
+
 module.exports = {
   getAllInvoices,
   getInvoiceById,
   createInvoice,
   deleteInvoice,
   updateInvoice,
+  downloadInvoicePDF,
 };

@@ -20,7 +20,7 @@ import {
   IconButton,
   Collapse
 } from '@mui/material';
-import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
+import { KeyboardArrowDown, KeyboardArrowUp, Download } from '@mui/icons-material';
 import api from '../services/api';
 import AddInvoiceDialog from '../components/AddInvoiceDialog';
 import EditInvoiceDialog from '../components/EditInvoiceDialog';
@@ -28,6 +28,22 @@ import EditInvoiceDialog from '../components/EditInvoiceDialog';
 const Row = (props) => {
   const { row, onEditClick, onDeleteClick } = props;
   const [open, setOpen] = useState(false);
+
+  // Fonction de téléchargement PDF
+  const handleDownloadPDF = async () => {
+    try {
+      const response = await api.get(`/invoices/${row.id}/pdf`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `facture_${row.id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      alert("Erreur lors du téléchargement du PDF");
+    }
+  };
 
   return (
     <>
@@ -51,9 +67,12 @@ const Row = (props) => {
           <Button size="small" variant="outlined" color="primary" sx={{ mr: 1 }} onClick={() => onEditClick(row)}>
             Modifier
           </Button>
-          <Button size="small" variant="outlined" color="error" onClick={() => onDeleteClick(row)}>
+          <Button size="small" variant="outlined" color="error" sx={{ mr: 1 }} onClick={() => onDeleteClick(row)}>
             Supprimer
           </Button>
+          <IconButton size="small" color="success" onClick={handleDownloadPDF} title="Télécharger PDF">
+            <Download />
+          </IconButton>
         </TableCell>
       </TableRow>
       <TableRow>

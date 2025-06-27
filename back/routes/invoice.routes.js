@@ -8,5 +8,6 @@ router.get('/:id', authenticateToken, invoiceController.getInvoiceById);
 router.post('/', authenticateToken, invoiceController.createInvoice);
 router.delete('/:id', authenticateToken, invoiceController.deleteInvoice);
 router.put('/:id', authenticateToken, invoiceController.updateInvoice);
+router.get('/:id/pdf', authenticateToken, invoiceController.downloadInvoicePDF);
 
 module.exports = router;
