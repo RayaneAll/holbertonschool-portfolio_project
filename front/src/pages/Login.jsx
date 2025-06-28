@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import {
@@ -123,6 +123,11 @@ const Login = () => {
             >
               Se connecter
             </Button>
+          </Box>
+          <Box sx={{ mt: 2, width: '100%', textAlign: 'right' }}>
+            <Link to="/forgot-password" style={{ color: '#1976d2', textDecoration: 'none', fontSize: 14 }}>
+              Mot de passe oublié ?
+            </Link>
           </Box>
         </Paper>
       </Box>

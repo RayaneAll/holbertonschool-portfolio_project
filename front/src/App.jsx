@@ -7,6 +7,8 @@ import Layout from './components/Layout';
 import Clients from './pages/Clients';
 import Products from './pages/Products';
 import Invoices from './pages/Invoices';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Création du thème
 const theme = createTheme({
@@ -42,6 +44,8 @@ function App() {
     <Router>
       <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               path="/dashboard"
               element={
