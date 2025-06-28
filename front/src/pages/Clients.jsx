@@ -21,6 +21,7 @@ import {
 import api from '../services/api';
 import AddClientDialog from '../components/AddClientDialog';
 import EditClientDialog from '../components/EditClientDialog';
+import DownloadIcon from '@mui/icons-material/Download';
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
@@ -150,8 +151,24 @@ const Clients = () => {
                       <Button size="small" variant="outlined" color="primary" sx={{ mr: 1 }} onClick={() => handleEditClick(client)}>
                         Modifier
                       </Button>
-                      <Button size="small" variant="outlined" color="error" onClick={() => handleDeleteClick(client)}>
+                      <Button size="small" variant="outlined" color="error" sx={{ mr: 1 }} onClick={() => handleDeleteClick(client)}>
                         Supprimer
+                      </Button>
+                      <Button size="small" variant="outlined" color="success" onClick={async () => {
+                        try {
+                          const response = await api.get(`/clients/${client.id}/statement/pdf`, { responseType: 'blob' });
+                          const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.setAttribute('download', `releve_client_${client.id}.pdf`);
+                          document.body.appendChild(link);
+                          link.click();
+                          link.remove();
+                        } catch (err) {
+                          alert("Erreur lors du téléchargement du relevé PDF");
+                        }
+                      }} title="Télécharger relevé PDF">
+                        <DownloadIcon />
                       </Button>
                     </TableCell>
                   </TableRow>
