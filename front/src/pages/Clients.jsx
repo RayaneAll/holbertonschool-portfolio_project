@@ -16,12 +16,15 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  IconButton,
+  Snackbar
 } from '@mui/material';
 import api from '../services/api';
 import AddClientDialog from '../components/AddClientDialog';
 import EditClientDialog from '../components/EditClientDialog';
 import DownloadIcon from '@mui/icons-material/Download';
+import EmailIcon from '@mui/icons-material/Email';
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
@@ -33,6 +36,8 @@ const Clients = () => {
   const [deleteError, setDeleteError] = useState('');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [clientToEdit, setClientToEdit] = useState(null);
+  const [emailSent, setEmailSent] = useState(null);
+  const [sendingEmails, setSendingEmails] = useState({});
 
   const fetchClients = async () => {
     setLoading(true);
@@ -81,6 +86,23 @@ const Clients = () => {
 
   const handleClientUpdated = (updatedClient) => {
     setClients((prev) => prev.map((c) => (c.id === updatedClient.id ? updatedClient : c)));
+  };
+
+  const handleEmailSent = (status, message) => {
+    setEmailSent({ status, message });
+  };
+
+  const handleSendStatementEmail = async (client) => {
+    setSendingEmails(prev => ({ ...prev, [client.id]: true }));
+    try {
+      await api.post(`/clients/${client.id}/statement/send-email`);
+      handleEmailSent('success', `Relevé de compte envoyé à ${client.name} avec succès`);
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || "Erreur lors de l'envoi du relevé de compte";
+      handleEmailSent('error', errorMessage);
+    } finally {
+      setSendingEmails(prev => ({ ...prev, [client.id]: false }));
+    }
   };
 
   return (
@@ -154,22 +176,36 @@ const Clients = () => {
                       <Button size="small" variant="outlined" color="error" sx={{ mr: 1 }} onClick={() => handleDeleteClick(client)}>
                         Supprimer
                       </Button>
-                      <Button size="small" variant="outlined" color="success" onClick={async () => {
-                        try {
-                          const response = await api.get(`/clients/${client.id}/statement/pdf`, { responseType: 'blob' });
-                          const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-                          const link = document.createElement('a');
-                          link.href = url;
-                          link.setAttribute('download', `releve_client_${client.id}.pdf`);
-                          document.body.appendChild(link);
-                          link.click();
-                          link.remove();
-                        } catch (err) {
-                          alert("Erreur lors du téléchargement du relevé PDF");
-                        }
-                      }} title="Télécharger relevé PDF">
+                      <IconButton 
+                        size="small" 
+                        color="success" 
+                        onClick={async () => {
+                          try {
+                            const response = await api.get(`/clients/${client.id}/statement/pdf`, { responseType: 'blob' });
+                            const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.setAttribute('download', `releve_client_${client.id}.pdf`);
+                            document.body.appendChild(link);
+                            link.click();
+                            link.remove();
+                          } catch (err) {
+                            alert("Erreur lors du téléchargement du relevé PDF");
+                          }
+                        }} 
+                        title="Télécharger relevé PDF"
+                      >
                         <DownloadIcon />
-                      </Button>
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        color="info" 
+                        onClick={() => handleSendStatementEmail(client)} 
+                        disabled={sendingEmails[client.id]}
+                        title="Envoyer le relevé au client"
+                      >
+                        {sendingEmails[client.id] ? <CircularProgress size={20} /> : <EmailIcon />}
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))
@@ -177,6 +213,22 @@ const Clients = () => {
             </TableBody>
           </Table>
         </TableContainer>
+      )}
+      {emailSent && (
+        <Snackbar
+          open={true}
+          autoHideDuration={6000}
+          onClose={() => setEmailSent(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert 
+            onClose={() => setEmailSent(null)} 
+            severity={emailSent.status} 
+            sx={{ width: '100%' }}
+          >
+            {emailSent.message}
+          </Alert>
+        </Snackbar>
       )}
     </Box>
   );

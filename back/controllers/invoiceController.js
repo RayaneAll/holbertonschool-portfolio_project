@@ -1,5 +1,6 @@
 const db = require('../models');
 const puppeteer = require('puppeteer');
+const nodemailer = require('nodemailer');
 
 const getAllInvoices = async (req, res) => {
   try {
@@ -352,6 +353,119 @@ const downloadInvoicePDF = async (req, res) => {
   }
 };
 
+// Envoi de la facture par email au client
+const sendInvoiceEmail = async (req, res) => {
+  try {
+    const invoice = await db.Invoice.findByPk(req.params.id, {
+      include: [
+        { model: db.Client },
+        {
+          model: db.InvoiceItem,
+          include: [db.Product],
+        },
+      ],
+    });
+    if (!invoice) return res.status(404).json({ error: 'Facture non trouvée' });
+    const clientEmail = invoice.clientEmail || invoice.Client?.email;
+    if (!clientEmail) return res.status(400).json({ error: 'Le client n\'a pas d\'email.' });
+
+    // Génération du PDF (on réutilise le template de downloadInvoicePDF)
+    const html = `
+      <html>
+      <head>
+        <meta charset='utf-8'>
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background: #f7f9fb; }
+          .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+          .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1976d2; padding-bottom: 16px; margin-bottom: 24px; }
+          .logo { font-size: 2rem; font-weight: bold; color: #1976d2; letter-spacing: 2px; }
+          .title { font-size: 1.5rem; color: #333; }
+          .info { margin-bottom: 24px; }
+          .info strong { color: #1976d2; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+          th, td { padding: 10px 8px; border-bottom: 1px solid #e0e0e0; text-align: left; }
+          th { background: #1976d2; color: #fff; font-weight: 600; }
+          .total { font-size: 1.2rem; font-weight: bold; color: #1976d2; text-align: right; }
+          .footer { font-size: 0.9rem; color: #888; text-align: center; margin-top: 32px; }
+        </style>
+      </head>
+      <body>
+        <div class='container'>
+          <div class='header'>
+            <div class='logo'>ERP System</div>
+            <div class='title'>Facture n°${invoice.id}</div>
+          </div>
+          <div class='info'>
+            <div><strong>Date :</strong> ${new Date(invoice.date).toLocaleDateString()}</div>
+            <div><strong>Client :</strong> ${invoice.clientName || invoice.Client?.name || ''}</div>
+            <div><strong>Email :</strong> ${invoice.clientEmail || invoice.Client?.email || ''}</div>
+            <div><strong>Téléphone :</strong> ${invoice.clientPhone || invoice.Client?.phone || ''}</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Description</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${invoice.InvoiceItems.map(item => `
+                <tr>
+                  <td>${item.productName || item.Product?.name || ''}</td>
+                  <td>${item.productDescription || item.Product?.description || ''}</td>
+                  <td>${item.quantity}</td>
+                  <td>${item.productPrice !== undefined ? item.productPrice : item.price} €</td>
+                  <td>${(item.quantity * (item.productPrice !== undefined ? item.productPrice : item.price)).toFixed(2)} €</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class='total'>Total : ${invoice.total.toFixed(2)} €</div>
+          <div class='footer'>Document généré par ERP System • ${new Date().toLocaleDateString()}</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
+    await browser.close();
+
+    // Config Nodemailer (Gmail)
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
+
+    // Envoi de l'email
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to: clientEmail,
+      subject: `Votre facture n°${invoice.id}`,
+      html: `<p>Bonjour,<br>Veuillez trouver ci-joint votre facture n°${invoice.id}.<br><br>Cordialement,<br>L'équipe ERP System</p>`,
+      attachments: [
+        {
+          filename: `facture_${invoice.id}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
+    });
+
+    res.status(200).json({ message: 'Facture envoyée au client avec succès.' });
+  } catch (err) {
+    console.error('Erreur envoi facture email :', err);
+    res.status(500).json({ error: 'Erreur lors de l\'envoi de la facture.' });
+  }
+};
+
 module.exports = {
   getAllInvoices,
   getInvoiceById,
@@ -359,4 +473,5 @@ module.exports = {
   deleteInvoice,
   updateInvoice,
   downloadInvoicePDF,
+  sendInvoiceEmail,
 };

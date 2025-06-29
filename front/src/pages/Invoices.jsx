@@ -18,16 +18,18 @@ import {
   DialogContentText,
   DialogActions,
   IconButton,
-  Collapse
+  Collapse,
+  Snackbar
 } from '@mui/material';
-import { KeyboardArrowDown, KeyboardArrowUp, Download } from '@mui/icons-material';
+import { KeyboardArrowDown, KeyboardArrowUp, Download, Email } from '@mui/icons-material';
 import api from '../services/api';
 import AddInvoiceDialog from '../components/AddInvoiceDialog';
 import EditInvoiceDialog from '../components/EditInvoiceDialog';
 
 const Row = (props) => {
-  const { row, onEditClick, onDeleteClick } = props;
+  const { row, onEditClick, onDeleteClick, onEmailSent } = props;
   const [open, setOpen] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   // Fonction de téléchargement PDF
   const handleDownloadPDF = async () => {
@@ -42,6 +44,20 @@ const Row = (props) => {
       link.remove();
     } catch (err) {
       alert("Erreur lors du téléchargement du PDF");
+    }
+  };
+
+  // Fonction d'envoi d'email
+  const handleSendEmail = async () => {
+    setSendingEmail(true);
+    try {
+      await api.post(`/invoices/${row.id}/send-email`);
+      onEmailSent('success', 'Facture envoyée au client avec succès');
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || "Erreur lors de l'envoi de la facture";
+      onEmailSent('error', errorMessage);
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -72,6 +88,15 @@ const Row = (props) => {
           </Button>
           <IconButton size="small" color="success" onClick={handleDownloadPDF} title="Télécharger PDF">
             <Download />
+          </IconButton>
+          <IconButton 
+            size="small" 
+            color="info" 
+            onClick={handleSendEmail} 
+            disabled={sendingEmail}
+            title="Envoyer au client"
+          >
+            {sendingEmail ? <CircularProgress size={20} /> : <Email />}
           </IconButton>
         </TableCell>
       </TableRow>
@@ -122,6 +147,7 @@ const Invoices = () => {
   const [deleteError, setDeleteError] = useState('');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [invoiceToEdit, setInvoiceToEdit] = useState(null);
+  const [emailSent, setEmailSent] = useState(null);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -168,6 +194,10 @@ const Invoices = () => {
   const handleInvoiceUpdated = (updatedInvoice) => {
     setInvoices((prev) => prev.map((inv) => (inv.id === updatedInvoice.id ? updatedInvoice : inv)));
     setEditDialogOpen(false);
+  };
+
+  const handleEmailSent = (status, message) => {
+    setEmailSent({ status, message });
   };
 
   return (
@@ -234,12 +264,28 @@ const Invoices = () => {
                 </TableRow>
               ) : (
                 invoices.map((invoice) => (
-                  <Row key={invoice.id} row={invoice} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} />
+                  <Row key={invoice.id} row={invoice} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} onEmailSent={handleEmailSent} />
                 ))
               )}
             </TableBody>
           </Table>
         </TableContainer>
+      )}
+      {emailSent && (
+        <Snackbar
+          open={true}
+          autoHideDuration={6000}
+          onClose={() => setEmailSent(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert 
+            onClose={() => setEmailSent(null)} 
+            severity={emailSent.status} 
+            sx={{ width: '100%' }}
+          >
+            {emailSent.message}
+          </Alert>
+        </Snackbar>
       )}
     </Box>
   );
