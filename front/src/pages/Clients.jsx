@@ -18,7 +18,8 @@ import {
   DialogContentText,
   DialogActions,
   IconButton,
-  Snackbar
+  Snackbar,
+  TablePagination
 } from '@mui/material';
 import api from '../services/api';
 import AddClientDialog from '../components/AddClientDialog';
@@ -38,13 +39,21 @@ const Clients = () => {
   const [clientToEdit, setClientToEdit] = useState(null);
   const [emailSent, setEmailSent] = useState(null);
   const [sendingEmails, setSendingEmails] = useState({});
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchClients = async () => {
+  const fetchClients = async (pageParam = page, limitParam = limit) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/clients');
-      setClients(response.data);
+      const response = await api.get(`/clients?page=${pageParam}&limit=${limitParam}`);
+      setClients(response.data.results);
+      setTotal(response.data.total);
+      setPage(response.data.page);
+      setLimit(response.data.limit);
+      setTotalPages(response.data.totalPages);
     } catch (err) {
       setError("Erreur lors du chargement des clients");
     } finally {
@@ -54,7 +63,7 @@ const Clients = () => {
 
   useEffect(() => {
     fetchClients();
-  }, []);
+  }, [page, limit]);
 
   const handleClientAdded = (newClient) => {
     setClients((prev) => [...prev, newClient]);
@@ -146,73 +155,85 @@ const Clients = () => {
       ) : error ? (
         <Alert severity="error">{error}</Alert>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Nom</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Téléphone</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {clients.length === 0 ? (
+        <>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    Aucun client trouvé.
-                  </TableCell>
+                  <TableCell>Nom</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Téléphone</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
-              ) : (
-                clients.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell>{client.name}</TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>{client.phone}</TableCell>
-                    <TableCell>
-                      <Button size="small" variant="outlined" color="primary" sx={{ mr: 1 }} onClick={() => handleEditClick(client)}>
-                        Modifier
-                      </Button>
-                      <Button size="small" variant="outlined" color="error" sx={{ mr: 1 }} onClick={() => handleDeleteClick(client)}>
-                        Supprimer
-                      </Button>
-                      <IconButton 
-                        size="small" 
-                        color="success" 
-                        onClick={async () => {
-                          try {
-                            const response = await api.get(`/clients/${client.id}/statement/pdf`, { responseType: 'blob' });
-                            const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-                            const link = document.createElement('a');
-                            link.href = url;
-                            link.setAttribute('download', `releve_client_${client.id}.pdf`);
-                            document.body.appendChild(link);
-                            link.click();
-                            link.remove();
-                          } catch (err) {
-                            alert("Erreur lors du téléchargement du relevé PDF");
-                          }
-                        }} 
-                        title="Télécharger relevé PDF"
-                      >
-                        <DownloadIcon />
-                      </IconButton>
-                      <IconButton 
-                        size="small" 
-                        color="info" 
-                        onClick={() => handleSendStatementEmail(client)} 
-                        disabled={sendingEmails[client.id]}
-                        title="Envoyer le relevé au client"
-                      >
-                        {sendingEmails[client.id] ? <CircularProgress size={20} /> : <EmailIcon />}
-                      </IconButton>
+              </TableHead>
+              <TableBody>
+                {clients.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      Aucun client trouvé.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ) : (
+                  clients.map((client) => (
+                    <TableRow key={client.id}>
+                      <TableCell>{client.name}</TableCell>
+                      <TableCell>{client.email}</TableCell>
+                      <TableCell>{client.phone}</TableCell>
+                      <TableCell>
+                        <Button size="small" variant="outlined" color="primary" sx={{ mr: 1 }} onClick={() => handleEditClick(client)}>
+                          Modifier
+                        </Button>
+                        <Button size="small" variant="outlined" color="error" sx={{ mr: 1 }} onClick={() => handleDeleteClick(client)}>
+                          Supprimer
+                        </Button>
+                        <IconButton 
+                          size="small" 
+                          color="success" 
+                          onClick={async () => {
+                            try {
+                              const response = await api.get(`/clients/${client.id}/statement/pdf`, { responseType: 'blob' });
+                              const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+                              const link = document.createElement('a');
+                              link.href = url;
+                              link.setAttribute('download', `releve_client_${client.id}.pdf`);
+                              document.body.appendChild(link);
+                              link.click();
+                              link.remove();
+                            } catch (err) {
+                              alert("Erreur lors du téléchargement du relevé PDF");
+                            }
+                          }} 
+                          title="Télécharger relevé PDF"
+                        >
+                          <DownloadIcon />
+                        </IconButton>
+                        <IconButton 
+                          size="small" 
+                          color="info" 
+                          onClick={() => handleSendStatementEmail(client)} 
+                          disabled={sendingEmails[client.id]}
+                          title="Envoyer le relevé au client"
+                        >
+                          {sendingEmails[client.id] ? <CircularProgress size={20} /> : <EmailIcon />}
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component="div"
+            count={total}
+            page={page - 1}
+            onPageChange={(e, newPage) => setPage(newPage + 1)}
+            rowsPerPage={limit}
+            onRowsPerPageChange={e => { setLimit(parseInt(e.target.value, 10)); setPage(1); }}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            labelRowsPerPage="Lignes par page"
+          />
+        </>
       )}
       {emailSent && (
         <Snackbar

@@ -4,8 +4,17 @@ const nodemailer = require('nodemailer');
 
 const getAllClients = async (req, res) => {
   try {
-    const clients = await db.Client.findAll();
-    res.json(clients);
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const offset = (page - 1) * limit;
+    const { count, rows } = await db.Client.findAndCountAll({ offset, limit, order: [['id', 'ASC']] });
+    res.json({
+      results: rows,
+      total: count,
+      page,
+      totalPages: Math.ceil(count / limit),
+      limit
+    });
   } catch (err) {
     res.status(500).json({ error: 'Error fetching clients' });
   }

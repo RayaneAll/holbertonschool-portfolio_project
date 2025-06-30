@@ -19,7 +19,8 @@ import {
   DialogActions,
   IconButton,
   Collapse,
-  Snackbar
+  Snackbar,
+  TablePagination
 } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp, Download, Email } from '@mui/icons-material';
 import api from '../services/api';
@@ -148,20 +149,31 @@ const Invoices = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [invoiceToEdit, setInvoiceToEdit] = useState(null);
   const [emailSent, setEmailSent] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchInvoices = async (pageParam = page, limitParam = limit) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get(`/invoices?page=${pageParam}&limit=${limitParam}`);
+      setInvoices(response.data.results);
+      setTotal(response.data.total);
+      setPage(response.data.page);
+      setLimit(response.data.limit);
+      setTotalPages(response.data.totalPages);
+    } catch (err) {
+      setError("Erreur lors du chargement des factures");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchInvoices = async () => {
-      try {
-        const response = await api.get('/invoices');
-        setInvoices(response.data);
-      } catch (err) {
-        setError("Erreur lors du chargement des factures");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchInvoices();
-  }, []);
+  }, [page, limit]);
 
   const handleInvoiceAdded = (newInvoice) => {
     setInvoices((prev) => [...prev, newInvoice]);
@@ -243,33 +255,45 @@ const Invoices = () => {
       ) : error ? (
         <Alert severity="error">{error}</Alert>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell />
-                <TableCell>Numéro</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Client</TableCell>
-                <TableCell>Montant</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {invoices.length === 0 ? (
+        <>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    Aucune facture trouvée.
-                  </TableCell>
+                  <TableCell />
+                  <TableCell>Numéro</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Client</TableCell>
+                  <TableCell>Montant</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
-              ) : (
-                invoices.map((invoice) => (
-                  <Row key={invoice.id} row={invoice} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} onEmailSent={handleEmailSent} />
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {invoices.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      Aucune facture trouvée.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  invoices.map((invoice) => (
+                    <Row key={invoice.id} row={invoice} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} onEmailSent={handleEmailSent} />
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component="div"
+            count={total}
+            page={page - 1}
+            onPageChange={(e, newPage) => setPage(newPage + 1)}
+            rowsPerPage={limit}
+            onRowsPerPageChange={e => { setLimit(parseInt(e.target.value, 10)); setPage(1); }}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            labelRowsPerPage="Lignes par page"
+          />
+        </>
       )}
       {emailSent && (
         <Snackbar

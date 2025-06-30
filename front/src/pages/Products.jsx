@@ -16,7 +16,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  TablePagination
 } from '@mui/material';
 import api from '../services/api';
 import AddProductDialog from '../components/AddProductDialog';
@@ -32,20 +33,31 @@ const Products = () => {
   const [deleteError, setDeleteError] = useState('');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchProducts = async (pageParam = page, limitParam = limit) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get(`/products?page=${pageParam}&limit=${limitParam}`);
+      setProducts(response.data.results);
+      setTotal(response.data.total);
+      setPage(response.data.page);
+      setLimit(response.data.limit);
+      setTotalPages(response.data.totalPages);
+    } catch (err) {
+      setError("Erreur lors du chargement des produits");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await api.get('/products');
-        setProducts(response.data);
-      } catch (err) {
-        setError("Erreur lors du chargement des produits");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProducts();
-  }, []);
+  }, [page, limit]);
 
   const handleProductAdded = (newProduct) => {
     setProducts((prev) => [...prev, newProduct]);
@@ -120,45 +132,57 @@ const Products = () => {
       ) : error ? (
         <Alert severity="error">{error}</Alert>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Nom</TableCell>
-                <TableCell>Prix</TableCell>
-                <TableCell>Stock</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {products.length === 0 ? (
+        <>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    Aucun produit trouvé.
-                  </TableCell>
+                  <TableCell>Nom</TableCell>
+                  <TableCell>Prix</TableCell>
+                  <TableCell>Stock</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
-              ) : (
-                products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>{product.price} €</TableCell>
-                    <TableCell>{product.stock}</TableCell>
-                    <TableCell>{product.description ? (product.description.length > 100 ? product.description.slice(0, 100) + '…' : product.description) : ''}</TableCell>
-                    <TableCell>
-                      <Button size="small" variant="outlined" color="primary" sx={{ mr: 1 }} onClick={() => handleEditClick(product)}>
-                        Modifier
-                      </Button>
-                      <Button size="small" variant="outlined" color="error" onClick={() => handleDeleteClick(product)}>
-                        Supprimer
-                      </Button>
+              </TableHead>
+              <TableBody>
+                {products.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      Aucun produit trouvé.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ) : (
+                  products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>{product.price} €</TableCell>
+                      <TableCell>{product.stock}</TableCell>
+                      <TableCell>{product.description ? (product.description.length > 100 ? product.description.slice(0, 100) + '…' : product.description) : ''}</TableCell>
+                      <TableCell>
+                        <Button size="small" variant="outlined" color="primary" sx={{ mr: 1 }} onClick={() => handleEditClick(product)}>
+                          Modifier
+                        </Button>
+                        <Button size="small" variant="outlined" color="error" onClick={() => handleDeleteClick(product)}>
+                          Supprimer
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component="div"
+            count={total}
+            page={page - 1}
+            onPageChange={(e, newPage) => setPage(newPage + 1)}
+            rowsPerPage={limit}
+            onRowsPerPageChange={e => { setLimit(parseInt(e.target.value, 10)); setPage(1); }}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            labelRowsPerPage="Lignes par page"
+          />
+        </>
       )}
     </Box>
   );

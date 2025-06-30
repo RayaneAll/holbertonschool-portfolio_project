@@ -4,16 +4,25 @@ const nodemailer = require('nodemailer');
 
 const getAllInvoices = async (req, res) => {
   try {
-    const invoices = await db.Invoice.findAll({
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const offset = (page - 1) * limit;
+    const { count, rows } = await db.Invoice.findAndCountAll({
+      offset,
+      limit,
+      order: [['id', 'DESC']],
       include: [
         { model: db.Client },
-        {
-          model: db.InvoiceItem,
-          include: [db.Product],
-        },
+        { model: db.InvoiceItem },
       ],
     });
-    res.json(invoices);
+    res.json({
+      results: rows,
+      total: count,
+      page,
+      totalPages: Math.ceil(count / limit),
+      limit
+    });
   } catch (err) {
     res.status(500).json({ error: 'Error fetching invoices' });
   }

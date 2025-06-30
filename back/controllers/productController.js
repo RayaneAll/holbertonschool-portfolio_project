@@ -2,8 +2,17 @@ const db = require('../models');
 
 const getAllProducts = async (req, res) => {
   try {
-    const products = await db.Product.findAll();
-    res.json(products);
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const offset = (page - 1) * limit;
+    const { count, rows } = await db.Product.findAndCountAll({ offset, limit, order: [['id', 'ASC']] });
+    res.json({
+      results: rows,
+      total: count,
+      page,
+      totalPages: Math.ceil(count / limit),
+      limit
+    });
   } catch (err) {
     res.status(500).json({ error: 'Error fetching products' });
   }
