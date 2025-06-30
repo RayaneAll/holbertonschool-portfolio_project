@@ -17,6 +17,9 @@ const createClient = async (req, res) => {
     const client = await db.Client.create({ name, email, phone });
     res.status(201).json(client);
   } catch (err) {
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: "L'email ou le téléphone existe déjà pour un autre client." });
+    }
     res.status(500).json({ error: 'Error creating client' });
   }
 };
@@ -106,7 +109,8 @@ const downloadClientStatementPDF = async (req, res) => {
           </div>
           ${invoices.length === 0 ? `<div style='color:#888;text-align:center;margin:32px 0;'>Aucune facture</div>` : invoices.map(inv => `
             <div class='facture-block'>
-              <div class='facture-title'>Facture n°${inv.id} — ${new Date(inv.date).toLocaleDateString()} — ${inv.total.toFixed(2)} € — ${inv.status || 'N/A'}</div>
+              <div class='facture-title'>Facture n°${inv.id} — ${new Date(inv.date).toLocaleDateString()} — ${inv.total.toFixed(2)} € — ${inv.status === 'pending' ? 'En attente' : (inv.status || 'N/A')}
+              </div>
               <table>
                 <thead>
                   <tr>
@@ -208,7 +212,8 @@ const sendClientStatementEmail = async (req, res) => {
           </div>
           ${invoices.length === 0 ? `<div style='color:#888;text-align:center;margin:32px 0;'>Aucune facture</div>` : invoices.map(inv => `
             <div class='facture-block'>
-              <div class='facture-title'>Facture n°${inv.id} — ${new Date(inv.date).toLocaleDateString()} — ${inv.total.toFixed(2)} € — ${inv.status || 'N/A'}</div>
+              <div class='facture-title'>Facture n°${inv.id} — ${new Date(inv.date).toLocaleDateString()} — ${inv.total.toFixed(2)} € — ${inv.status === 'pending' ? 'En attente' : (inv.status || 'N/A')}
+              </div>
               <table>
                 <thead>
                   <tr>

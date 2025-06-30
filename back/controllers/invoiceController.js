@@ -305,6 +305,7 @@ const downloadInvoicePDF = async (req, res) => {
             <div><strong>Client :</strong> ${invoice.clientName || invoice.Client?.name || ''}</div>
             <div><strong>Email :</strong> ${invoice.clientEmail || invoice.Client?.email || ''}</div>
             <div><strong>Téléphone :</strong> ${invoice.clientPhone || invoice.Client?.phone || ''}</div>
+            <div><strong>Statut :</strong> ${invoice.status === 'pending' ? 'En attente' : (invoice.status || 'N/A')}</div>
           </div>
           <table>
             <thead>
@@ -400,6 +401,7 @@ const sendInvoiceEmail = async (req, res) => {
             <div><strong>Client :</strong> ${invoice.clientName || invoice.Client?.name || ''}</div>
             <div><strong>Email :</strong> ${invoice.clientEmail || invoice.Client?.email || ''}</div>
             <div><strong>Téléphone :</strong> ${invoice.clientPhone || invoice.Client?.phone || ''}</div>
+            <div><strong>Statut :</strong> ${invoice.status === 'pending' ? 'En attente' : (invoice.status || 'N/A')}</div>
           </div>
           <table>
             <thead>

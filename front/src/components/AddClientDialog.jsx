@@ -39,7 +39,11 @@ const AddClientDialog = ({ open, onClose, onClientAdded }) => {
         resetForm();
         onClose();
       } catch (err) {
-        setError(err.response?.data?.message || 'Erreur lors de l\'ajout du client');
+        if (err.response?.status === 409) {
+          setError("Un client avec cet email ou ce téléphone existe déjà.");
+        } else {
+          setError(err.response?.data?.message || 'Erreur lors de l\'ajout du client');
+        }
       } finally {
         setLoading(false);
       }

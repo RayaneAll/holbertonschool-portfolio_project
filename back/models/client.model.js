@@ -4,8 +4,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    email: DataTypes.STRING,
-    phone: DataTypes.STRING,
+    email: {
+      type: DataTypes.STRING,
+      unique: true,
+    },
+    phone: {
+      type: DataTypes.STRING,
+      unique: true,
+    },
   });
 
   return Client;

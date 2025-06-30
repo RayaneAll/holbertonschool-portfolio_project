@@ -15,6 +15,9 @@ const createProduct = async (req, res) => {
     const product = await db.Product.create({ name, description, price, stock });
     res.status(201).json(product);
   } catch (err) {
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: "Un produit avec cette description existe déjà." });
+    }
     res.status(500).json({ error: 'Error creating product' });
   }
 };

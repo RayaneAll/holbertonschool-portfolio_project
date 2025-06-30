@@ -16,7 +16,7 @@ const validationSchema = Yup.object({
   name: Yup.string().required('Nom requis'),
   price: Yup.number().typeError('Prix invalide').min(0, 'Prix >= 0').required('Prix requis'),
   stock: Yup.number().typeError('Stock invalide').min(0, 'Stock >= 0').required('Stock requis'),
-  description: Yup.string().max(500, '500 caractères max'),
+  description: Yup.string().required('Description requise').max(255, '255 caractères max'),
 });
 
 const AddProductDialog = ({ open, onClose, onProductAdded }) => {
@@ -40,7 +40,11 @@ const AddProductDialog = ({ open, onClose, onProductAdded }) => {
         resetForm();
         onClose();
       } catch (err) {
-        setError(err.response?.data?.message || "Erreur lors de l'ajout du produit");
+        if (err.response?.status === 409) {
+          setError("Un produit avec cette description existe déjà.");
+        } else {
+          setError(err.response?.data?.message || "Erreur lors de l'ajout du produit");
+        }
       } finally {
         setLoading(false);
       }

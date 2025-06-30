@@ -28,7 +28,7 @@ import { useAuth } from '../context/AuthContext';
 const drawerWidth = 240;
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+  { text: 'Tableau de bord', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Clients', icon: <PeopleIcon />, path: '/clients' },
   { text: 'Produits', icon: <InventoryIcon />, path: '/products' },
   { text: 'Factures', icon: <ReceiptIcon />, path: '/invoices' },
@@ -107,7 +107,7 @@ const Layout = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            {menuItems.find(item => item.path === location.pathname)?.text || 'Dashboard'}
+            {menuItems.find(item => item.path === location.pathname)?.text || 'Tableau de bord'}
           </Typography>
         </Toolbar>
       </AppBar>
