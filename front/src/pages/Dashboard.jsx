@@ -13,6 +13,9 @@ import {
   AttachMoney as MoneyIcon,
 } from '@mui/icons-material';
 import api from '../services/api';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+} from 'recharts';
 
 const StatCard = ({ title, value, icon, color }) => (
   <Paper
@@ -42,14 +45,19 @@ const Dashboard = () => {
     totalInvoices: 0,
     totalRevenue: 0,
   });
+  const [monthly, setMonthly] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await api.get('/dashboard/stats');
-        setStats(response.data);
+        const [statsRes, monthlyRes] = await Promise.all([
+          api.get('/dashboard/stats'),
+          api.get('/dashboard/stats/monthly'),
+        ]);
+        setStats(statsRes.data);
+        setMonthly(monthlyRes.data);
       } catch (err) {
         setError('Erreur lors du chargement des statistiques');
         console.error(err);
@@ -57,7 +65,6 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
-
     fetchStats();
   }, []);
 
@@ -116,6 +123,21 @@ const Dashboard = () => {
           />
         </Grid>
       </Grid>
+      <Box sx={{ mt: 5 }}>
+        <Typography variant="h6" gutterBottom>
+          Chiffre d'affaires par mois
+        </Typography>
+        <ResponsiveContainer width="100%" height={320}>
+          <BarChart data={monthly} margin={{ top: 16, right: 32, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" tickFormatter={m => m.slice(5) + '/' + m.slice(2, 4)} />
+            <YAxis tickFormatter={v => v.toLocaleString()} />
+            <Tooltip formatter={v => v.toLocaleString() + ' €'} labelFormatter={l => 'Mois : ' + l} />
+            <Legend />
+            <Bar dataKey="total" name="CA (€)" fill="#1976d2" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </Box>
     </Box>
   );
 };
