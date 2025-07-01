@@ -20,8 +20,13 @@ import {
   IconButton,
   Collapse,
   Snackbar,
-  TablePagination
+  TablePagination,
+  Card,
+  CardContent,
+  CardActions,
+  useMediaQuery
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { KeyboardArrowDown, KeyboardArrowUp, Download, Email } from '@mui/icons-material';
 import api from '../services/api';
 import AddInvoiceDialog from '../components/AddInvoiceDialog';
@@ -153,6 +158,8 @@ const Invoices = () => {
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const fetchInvoices = async (pageParam = page, limitParam = limit) => {
     setLoading(true);
@@ -208,10 +215,6 @@ const Invoices = () => {
     setEditDialogOpen(false);
   };
 
-  const handleEmailSent = (status, message) => {
-    setEmailSent({ status, message });
-  };
-
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
@@ -225,14 +228,12 @@ const Invoices = () => {
         onClose={() => setOpenDialog(false)}
         onInvoiceAdded={handleInvoiceAdded}
       />
-      {invoiceToEdit && (
-        <EditInvoiceDialog
-          open={editDialogOpen}
-          onClose={() => setEditDialogOpen(false)}
-          invoice={invoiceToEdit}
-          onInvoiceUpdated={handleInvoiceUpdated}
-        />
-      )}
+      <EditInvoiceDialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        invoice={invoiceToEdit}
+        onInvoiceUpdated={handleInvoiceUpdated}
+      />
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Confirmer la suppression</DialogTitle>
         <DialogContent>
@@ -256,47 +257,126 @@ const Invoices = () => {
         <Alert severity="error">{error}</Alert>
       ) : (
         <>
-          <Box sx={{ width: '100%', overflowX: 'auto' }}>
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell />
-                    <TableCell>Numéro</TableCell>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Client</TableCell>
-                    <TableCell>Montant</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {invoices.length === 0 ? (
+          {isMobile ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {invoices.length === 0 ? (
+                <Alert severity="info">Aucune facture trouvée.</Alert>
+              ) : (
+                invoices.map((invoice) => (
+                  <Card key={invoice.id} sx={{ mb: 2 }}>
+                    <CardContent>
+                      <Typography variant="h6">Facture n°{invoice.id}</Typography>
+                      <Typography color="text.secondary">Date : {invoice.date ? new Date(invoice.date).toLocaleDateString() : ''}</Typography>
+                      <Typography color="text.secondary">Client : {invoice.clientName || invoice.Client?.name || ''}</Typography>
+                      <Typography color="text.secondary">Montant : {invoice.total} €</Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button size="small" variant="outlined" color="primary" onClick={() => handleEditClick(invoice)}>
+                        Modifier
+                      </Button>
+                      <Button size="small" variant="outlined" color="error" onClick={() => handleDeleteClick(invoice)}>
+                        Supprimer
+                      </Button>
+                      <IconButton size="small" color="success" onClick={async () => {
+                        try {
+                          const response = await api.get(`/invoices/${invoice.id}/pdf`, { responseType: 'blob' });
+                          const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.setAttribute('download', `facture_${invoice.id}.pdf`);
+                          document.body.appendChild(link);
+                          link.click();
+                          link.remove();
+                        } catch (err) {
+                          alert("Erreur lors du téléchargement du PDF");
+                        }
+                      }} title="Télécharger PDF">
+                        <Download />
+                      </IconButton>
+                      <IconButton size="small" color="info" onClick={async () => {
+                        setEmailSent(null);
+                        try {
+                          await api.post(`/invoices/${invoice.id}/send-email`);
+                          setEmailSent({ status: 'success', message: 'Facture envoyée au client avec succès' });
+                        } catch (err) {
+                          const errorMessage = err.response?.data?.error || "Erreur lors de l'envoi de la facture";
+                          setEmailSent({ status: 'error', message: errorMessage });
+                        }
+                      }} title="Envoyer au client">
+                        <Email />
+                      </IconButton>
+                    </CardActions>
+                  </Card>
+                ))
+              )}
+            </Box>
+          ) : (
+            <Box sx={{ width: '100%', overflowX: 'auto' }}>
+              <TableContainer component={Paper}>
+                <Table sx={{ minWidth: 650 }}>
+                  <TableHead>
                     <TableRow>
-                      <TableCell colSpan={6} align="center">
-                        Aucune facture trouvée.
-                      </TableCell>
+                      <TableCell />
+                      <TableCell>Numéro</TableCell>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Client</TableCell>
+                      <TableCell>Montant</TableCell>
+                      <TableCell>Actions</TableCell>
                     </TableRow>
-                  ) : (
-                    invoices.map((invoice) => (
-                      <Row key={invoice.id} row={invoice} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} onEmailSent={handleEmailSent} />
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-          <Box sx={{ px: { xs: 2, sm: 0 } }}>
-            <TablePagination
-              component="div"
-              count={total}
-              page={page - 1}
-              onPageChange={(e, newPage) => setPage(newPage + 1)}
-              rowsPerPage={limit}
-              onRowsPerPageChange={e => { setLimit(parseInt(e.target.value, 10)); setPage(1); }}
-              rowsPerPageOptions={[5, 10, 25, 50]}
-              labelRowsPerPage="Lignes par page"
-            />
-          </Box>
+                  </TableHead>
+                  <TableBody>
+                    {invoices.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center">
+                          Aucune facture trouvée.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      invoices.map((invoice) => (
+                        <Row key={invoice.id} row={invoice} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} onEmailSent={setEmailSent} />
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )}
+          {isMobile ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2, gap: 2 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+              >
+                ←
+              </Button>
+              <Typography variant="body2">
+                {page} / {totalPages}
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={page === totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                →
+              </Button>
+            </Box>
+          ) : (
+            <Box sx={{ px: { xs: 2, sm: 0 } }}>
+              <TablePagination
+                component="div"
+                count={total}
+                page={page - 1}
+                onPageChange={(e, newPage) => setPage(newPage + 1)}
+                rowsPerPage={limit}
+                onRowsPerPageChange={e => { setLimit(parseInt(e.target.value, 10)); setPage(1); }}
+                rowsPerPageOptions={[5, 10, 25, 50]}
+                labelRowsPerPage="Lignes par page"
+              />
+            </Box>
+          )}
         </>
       )}
       {emailSent && (
