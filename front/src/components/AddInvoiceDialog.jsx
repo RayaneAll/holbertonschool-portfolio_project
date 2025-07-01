@@ -27,8 +27,8 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
 
   useEffect(() => {
     if (open) {
-      api.get('/clients').then(res => setClients(res.data));
-      api.get('/products').then(res => setProducts(res.data));
+      api.get('/clients').then(res => setClients(res.data.results || []));
+      api.get('/products').then(res => setProducts(res.data.results || []));
     }
   }, [open]);
 
@@ -86,9 +86,9 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
               error={formik.touched.clientId && Boolean(formik.errors.clientId)}
               label="Client"
             >
-              {clients.map((client) => (
+              {Array.isArray(clients) ? clients.map((client) => (
                 <MenuItem key={client.id} value={client.id}>{client.name}</MenuItem>
-              ))}
+              )) : null}
             </Select>
           </FormControl>
           <TextField
@@ -144,11 +144,11 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
                               }
                             }}
                           >
-                            {products.map((p) => (
+                            {Array.isArray(products) ? products.map((p) => (
                               <MenuItem key={p.id} value={p.id} disabled={p.stock === 0}>
                                 {p.name} {p.stock === 0 ? '(Rupture de stock)' : ''}
                               </MenuItem>
-                            ))}
+                            )) : null}
                           </Select>
                         </FormControl>
                         <TextField

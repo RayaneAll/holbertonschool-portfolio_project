@@ -33,8 +33,8 @@ const EditInvoiceDialog = ({ open, onClose, invoice, onInvoiceUpdated }) => {
         api.get('/clients'),
         api.get('/products')
       ]).then(([clientsRes, productsRes]) => {
-        setClients(clientsRes.data);
-        setProducts(productsRes.data);
+        setClients(clientsRes.data.results || []);
+        setProducts(productsRes.data.results || []);
       }).catch(err => {
         setError("Erreur lors du chargement des données.");
         console.error(err);
@@ -112,9 +112,9 @@ const EditInvoiceDialog = ({ open, onClose, invoice, onInvoiceUpdated }) => {
                   onChange={formik.handleChange}
                   label="Client"
                 >
-                  {clients.map((client) => (
+                  {Array.isArray(clients) ? clients.map((client) => (
                     <MenuItem key={client.id} value={client.id}>{client.name}</MenuItem>
-                  ))}
+                  )) : null}
                 </Select>
               </FormControl>
               <TextField
@@ -166,11 +166,11 @@ const EditInvoiceDialog = ({ open, onClose, invoice, onInvoiceUpdated }) => {
                                   }
                                 }}
                               >
-                                {products.map((p) => (
+                                {Array.isArray(products) ? products.map((p) => (
                                   <MenuItem key={p.id} value={p.id} disabled={p.stock === 0}>
                                     {p.name} {p.stock === 0 ? '(Rupture de stock)' : ''}
                                   </MenuItem>
-                                ))}
+                                )) : null}
                               </Select>
                             </FormControl>
                             <TextField
