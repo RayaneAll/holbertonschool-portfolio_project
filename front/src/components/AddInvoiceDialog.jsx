@@ -12,12 +12,14 @@ import {
   InputLabel,
   FormControl,
   IconButton,
-  Box
+  Box,
+  useMediaQuery
 } from '@mui/material';
 import { Add, Remove } from '@mui/icons-material';
 import { useFormik, FieldArray, FormikProvider } from 'formik';
 import * as Yup from 'yup';
 import api from '../services/api';
+import { useTheme } from '@mui/material/styles';
 
 const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
   const [error, setError] = useState('');
@@ -70,11 +72,14 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
   // Calcul du total
   const total = formik.values.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Ajouter une facture</DialogTitle>
       <form onSubmit={formik.handleSubmit}>
-        <DialogContent>
+        <DialogContent sx={{ p: isMobile ? 1 : 3 }}>
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <FormControl fullWidth margin="dense">
             <InputLabel id="client-label">Client</InputLabel>
@@ -85,6 +90,7 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
               onChange={formik.handleChange}
               error={formik.touched.clientId && Boolean(formik.errors.clientId)}
               label="Client"
+              size={isMobile ? 'small' : 'medium'}
             >
               {Array.isArray(clients) ? clients.map((client) => (
                 <MenuItem key={client.id} value={client.id}>{client.name}</MenuItem>
@@ -103,6 +109,7 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
             helperText={formik.touched.date && formik.errors.date}
             InputLabelProps={{ shrink: true }}
             inputProps={{ max: new Date().toISOString().slice(0, 10) }}
+            size={isMobile ? 'small' : 'medium'}
           />
           {/* Warning si la date est trop ancienne */}
           {(() => {
@@ -120,15 +127,15 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
             <FieldArray
               name="items"
               render={arrayHelpers => (
-                <Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 2 : 1 }}>
                   {formik.values.items.map((item, idx) => {
                     const selectedProduct = products.find(p => p.id === item.productId);
                     const maxQty = selectedProduct ? selectedProduct.stock : Infinity;
                     const isOutOfStock = selectedProduct && selectedProduct.stock === 0;
                     const qtyError = item.quantity > maxQty;
                     return (
-                      <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1 }}>
-                        <FormControl sx={{ flex: 1 }}>
+                      <Box key={idx} sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 1, alignItems: isMobile ? 'stretch' : 'center', mb: 1, p: isMobile ? 1 : 0, border: isMobile ? '1px solid #eee' : 'none', borderRadius: 2 }}>
+                        <FormControl sx={{ flex: 1 }} size={isMobile ? 'small' : 'medium'}>
                           <InputLabel>Produit</InputLabel>
                           <Select
                             name={`items[${idx}].productId`}
@@ -138,11 +145,11 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
                               formik.handleChange(e);
                               const selected = products.find(p => p.id === e.target.value);
                               formik.setFieldValue(`items[${idx}].price`, selected ? selected.price : 0);
-                              // Réinitialise la quantité à 1 si le stock est faible
                               if (selected && item.quantity > selected.stock) {
                                 formik.setFieldValue(`items[${idx}].quantity`, selected.stock > 0 ? 1 : 0);
                               }
                             }}
+                            size={isMobile ? 'small' : 'medium'}
                           >
                             {Array.isArray(products) ? products.map((p) => (
                               <MenuItem key={p.id} value={p.id} disabled={p.stock === 0}>
@@ -162,11 +169,12 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
                             if (value < 1) value = 1;
                             formik.setFieldValue(`items[${idx}].quantity`, value);
                           }}
-                          sx={{ width: 100 }}
+                          sx={{ width: isMobile ? '100%' : 100 }}
                           inputProps={{ min: 1, max: maxQty }}
                           error={qtyError}
                           helperText={qtyError ? `Stock max : ${maxQty}` : ''}
                           disabled={isOutOfStock}
+                          size={isMobile ? 'small' : 'medium'}
                         />
                         <TextField
                           label="Prix (€)"
@@ -174,15 +182,18 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
                           type="number"
                           value={item.price}
                           onChange={formik.handleChange}
-                          sx={{ width: 120 }}
+                          sx={{ width: isMobile ? '100%' : 120 }}
                           disabled
+                          size={isMobile ? 'small' : 'medium'}
                         />
-                        <IconButton onClick={() => arrayHelpers.remove(idx)} disabled={formik.values.items.length === 1}>
-                          <Remove />
-                        </IconButton>
-                        <IconButton onClick={() => arrayHelpers.insert(idx + 1, { productId: '', quantity: 1, price: 0 })}>
-                          <Add />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, justifyContent: isMobile ? 'flex-end' : 'center', mt: isMobile ? 1 : 0 }}>
+                          <IconButton onClick={() => arrayHelpers.remove(idx)} disabled={formik.values.items.length === 1} size={isMobile ? 'small' : 'medium'}>
+                            <Remove />
+                          </IconButton>
+                          <IconButton onClick={() => arrayHelpers.insert(idx + 1, { productId: '', quantity: 1, price: 0 })} size={isMobile ? 'small' : 'medium'}>
+                            <Add />
+                          </IconButton>
+                        </Box>
                       </Box>
                     );
                   })}
@@ -190,11 +201,11 @@ const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
               )}
             />
           </FormikProvider>
-          <Box sx={{ mt: 2, fontWeight: 'bold' }}>Total : {total} €</Box>
+          <Box sx={{ mt: 2, fontWeight: 'bold', textAlign: isMobile ? 'right' : 'left' }}>Total : {total} €</Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} disabled={loading}>Annuler</Button>
-          <Button type="submit" variant="contained" disabled={loading}>
+        <DialogActions sx={{ flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 1 : 0 }}>
+          <Button onClick={onClose} disabled={loading} fullWidth={isMobile} size={isMobile ? 'large' : 'medium'}>Annuler</Button>
+          <Button type="submit" variant="contained" disabled={loading} fullWidth={isMobile} size={isMobile ? 'large' : 'medium'}>
             Ajouter
           </Button>
         </DialogActions>
