@@ -133,55 +133,59 @@ const Products = () => {
         <Alert severity="error">{error}</Alert>
       ) : (
         <>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nom</TableCell>
-                  <TableCell>Prix</TableCell>
-                  <TableCell>Stock</TableCell>
-                  <TableCell>Description</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {products.length === 0 ? (
+          <Box sx={{ width: '100%', overflowX: 'auto' }}>
+            <TableContainer component={Paper}>
+              <Table sx={{ minWidth: 650 }}>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      Aucun produit trouvé.
-                    </TableCell>
+                    <TableCell>Nom</TableCell>
+                    <TableCell>Prix</TableCell>
+                    <TableCell>Stock</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
-                ) : (
-                  products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell>{product.price} €</TableCell>
-                      <TableCell>{product.stock}</TableCell>
-                      <TableCell>{product.description ? (product.description.length > 100 ? product.description.slice(0, 100) + '…' : product.description) : ''}</TableCell>
-                      <TableCell>
-                        <Button size="small" variant="outlined" color="primary" sx={{ mr: 1 }} onClick={() => handleEditClick(product)}>
-                          Modifier
-                        </Button>
-                        <Button size="small" variant="outlined" color="error" onClick={() => handleDeleteClick(product)}>
-                          Supprimer
-                        </Button>
+                </TableHead>
+                <TableBody>
+                  {products.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        Aucun produit trouvé.
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            component="div"
-            count={total}
-            page={page - 1}
-            onPageChange={(e, newPage) => setPage(newPage + 1)}
-            rowsPerPage={limit}
-            onRowsPerPageChange={e => { setLimit(parseInt(e.target.value, 10)); setPage(1); }}
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            labelRowsPerPage="Lignes par page"
-          />
+                  ) : (
+                    products.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell>{product.price} €</TableCell>
+                        <TableCell>{product.stock}</TableCell>
+                        <TableCell>{product.description ? (product.description.length > 100 ? product.description.slice(0, 100) + '…' : product.description) : ''}</TableCell>
+                        <TableCell>
+                          <Button size="small" variant="outlined" color="primary" sx={{ mr: 1 }} onClick={() => handleEditClick(product)}>
+                            Modifier
+                          </Button>
+                          <Button size="small" variant="outlined" color="error" onClick={() => handleDeleteClick(product)}>
+                            Supprimer
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+          <Box sx={{ px: { xs: 2, sm: 0 } }}>
+            <TablePagination
+              component="div"
+              count={total}
+              page={page - 1}
+              onPageChange={(e, newPage) => setPage(newPage + 1)}
+              rowsPerPage={limit}
+              onRowsPerPageChange={e => { setLimit(parseInt(e.target.value, 10)); setPage(1); }}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              labelRowsPerPage="Lignes par page"
+            />
+          </Box>
         </>
       )}
     </Box>

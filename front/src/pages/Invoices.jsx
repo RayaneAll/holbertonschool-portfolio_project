@@ -256,43 +256,47 @@ const Invoices = () => {
         <Alert severity="error">{error}</Alert>
       ) : (
         <>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell />
-                  <TableCell>Numéro</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Client</TableCell>
-                  <TableCell>Montant</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {invoices.length === 0 ? (
+          <Box sx={{ width: '100%', overflowX: 'auto' }}>
+            <TableContainer component={Paper}>
+              <Table sx={{ minWidth: 650 }}>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      Aucune facture trouvée.
-                    </TableCell>
+                    <TableCell />
+                    <TableCell>Numéro</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Client</TableCell>
+                    <TableCell>Montant</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
-                ) : (
-                  invoices.map((invoice) => (
-                    <Row key={invoice.id} row={invoice} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} onEmailSent={handleEmailSent} />
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            component="div"
-            count={total}
-            page={page - 1}
-            onPageChange={(e, newPage) => setPage(newPage + 1)}
-            rowsPerPage={limit}
-            onRowsPerPageChange={e => { setLimit(parseInt(e.target.value, 10)); setPage(1); }}
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            labelRowsPerPage="Lignes par page"
-          />
+                </TableHead>
+                <TableBody>
+                  {invoices.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">
+                        Aucune facture trouvée.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    invoices.map((invoice) => (
+                      <Row key={invoice.id} row={invoice} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} onEmailSent={handleEmailSent} />
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+          <Box sx={{ px: { xs: 2, sm: 0 } }}>
+            <TablePagination
+              component="div"
+              count={total}
+              page={page - 1}
+              onPageChange={(e, newPage) => setPage(newPage + 1)}
+              rowsPerPage={limit}
+              onRowsPerPageChange={e => { setLimit(parseInt(e.target.value, 10)); setPage(1); }}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              labelRowsPerPage="Lignes par page"
+            />
+          </Box>
         </>
       )}
       {emailSent && (
