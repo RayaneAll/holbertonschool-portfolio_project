@@ -48,6 +48,29 @@ const getInvoiceById = async (req, res) => {
   }
 };
 
+// Fonction utilitaire de retry pour les updates de stock
+async function safeStockUpdate(product, method, field, value, transaction, maxAttempts = 3) {
+  let attempts = 0;
+  while (attempts < maxAttempts) {
+    try {
+      if (method === 'increment') {
+        await product.increment(field, { by: value, transaction });
+      } else if (method === 'decrement') {
+        await product.decrement(field, { by: value, transaction });
+      }
+      return;
+    } catch (err) {
+      if (err.original && err.original.code === 'ER_LOCK_WAIT_TIMEOUT') {
+        attempts++;
+        await new Promise(res => setTimeout(res, 100));
+      } else {
+        throw err;
+      }
+    }
+  }
+  throw new Error('Impossible de mettre à jour le stock après plusieurs tentatives');
+}
+
 const createInvoice = async (req, res) => {
   const t = await db.sequelize.transaction();
   try {
@@ -114,7 +137,7 @@ const createInvoice = async (req, res) => {
         { transaction: t }
       );
       // Décrémente le stock du produit
-      await item.productInstance.decrement('stock', { by: item.quantity, transaction: t });
+      await safeStockUpdate(item.productInstance, 'decrement', 'stock', item.quantity, t);
     }
 
     await t.commit();
@@ -192,7 +215,7 @@ const updateInvoice = async (req, res) => {
       if (oldItem.ProductId) {
         const product = await db.Product.findByPk(oldItem.ProductId, { transaction: t });
         if (product) {
-          await product.increment('stock', { by: oldItem.quantity, transaction: t });
+          await safeStockUpdate(product, 'increment', 'stock', oldItem.quantity, t);
         }
       }
     }
@@ -242,7 +265,7 @@ const updateInvoice = async (req, res) => {
         productDescription: item.productDescription,
         productPrice: item.productPrice,
       }, { transaction: t });
-      await item.productInstance.decrement('stock', { by: item.quantity, transaction: t });
+      await safeStockUpdate(item.productInstance, 'decrement', 'stock', item.quantity, t);
     }
 
     await t.commit();

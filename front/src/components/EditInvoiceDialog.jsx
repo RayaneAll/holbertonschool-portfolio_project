@@ -34,8 +34,8 @@ const EditInvoiceDialog = ({ open, onClose, invoice, onInvoiceUpdated }) => {
     if (open) {
       setDataLoading(true);
       Promise.all([
-        api.get('/clients'),
-        api.get('/products')
+        api.get('/clients?limit=1000'),
+        api.get('/products?limit=1000')
       ]).then(([clientsRes, productsRes]) => {
         setClients(clientsRes.data.results || []);
         setProducts(productsRes.data.results || []);
@@ -107,21 +107,24 @@ const EditInvoiceDialog = ({ open, onClose, invoice, onInvoiceUpdated }) => {
             </Box>
           ) : (
             <>
-              <FormControl fullWidth margin="dense">
-                <InputLabel id="client-label">Client</InputLabel>
-                <Select
-                  labelId="client-label"
-                  name="clientId"
-                  value={formik.values.clientId}
-                  onChange={formik.handleChange}
-                  label="Client"
-                  size={isMobile ? 'small' : 'medium'}
-                >
-                  {Array.isArray(clients) ? clients.map((client) => (
-                    <MenuItem key={client.id} value={client.id}>{client.name}</MenuItem>
-                  )) : null}
-                </Select>
-              </FormControl>
+              <TextField
+                select
+                margin="dense"
+                label="Client"
+                name="clientId"
+                fullWidth
+                value={formik.values.clientId}
+                onChange={formik.handleChange}
+                error={formik.touched.clientId && Boolean(formik.errors.clientId)}
+                helperText={formik.touched.clientId && formik.errors.clientId}
+                size={isMobile ? 'small' : 'medium'}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ style: { minHeight: 40 } }}
+              >
+                {Array.isArray(clients) ? clients.map((client) => (
+                  <MenuItem key={client.id} value={client.id}>{client.name}</MenuItem>
+                )) : null}
+              </TextField>
               <TextField
                 margin="dense"
                 label="Date"
@@ -145,11 +148,12 @@ const EditInvoiceDialog = ({ open, onClose, invoice, onInvoiceUpdated }) => {
                 }
                 return null;
               })()}
+              <Box sx={{ mt: 2 }} />
               <FormikProvider value={formik}>
                 <FieldArray
                   name="items"
                   render={arrayHelpers => (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 2 : 1 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       {formik.values.items.map((item, idx) => {
                         const selectedProduct = products.find(p => p.id === item.productId);
                         const maxQty = selectedProduct ? selectedProduct.stock : Infinity;
@@ -174,30 +178,37 @@ const EditInvoiceDialog = ({ open, onClose, invoice, onInvoiceUpdated }) => {
                                 size={isMobile ? 'small' : 'medium'}
                               >
                                 {Array.isArray(products) ? products.map((p) => (
-                                  <MenuItem key={p.id} value={p.id} disabled={p.stock === 0}>
+                                  <MenuItem key={p.id} value={p.id} disabled={p.stock === 0 && item.productId !== p.id}>
                                     {p.name} {p.stock === 0 ? '(Rupture de stock)' : ''}
                                   </MenuItem>
                                 )) : null}
                               </Select>
                             </FormControl>
-                            <TextField
-                              label="Quantité"
-                              name={`items[${idx}].quantity`}
-                              type="number"
-                              value={item.quantity}
-                              onChange={e => {
-                                let value = Number(e.target.value);
-                                if (selectedProduct && value > selectedProduct.stock) value = selectedProduct.stock;
-                                if (value < 1) value = 1;
-                                formik.setFieldValue(`items[${idx}].quantity`, value);
-                              }}
-                              sx={{ width: isMobile ? '100%' : 100 }}
-                              inputProps={{ min: 1, max: maxQty }}
-                              error={qtyError}
-                              helperText={qtyError ? `Stock max : ${maxQty}` : ''}
-                              disabled={isOutOfStock}
-                              size={isMobile ? 'small' : 'medium'}
-                            />
+                            <Box sx={{ position: 'relative', width: isMobile ? '100%' : 100 }}>
+                              <TextField
+                                label="Quantité"
+                                name={`items[${idx}].quantity`}
+                                type="number"
+                                value={item.quantity}
+                                onChange={e => {
+                                  let value = Number(e.target.value);
+                                  if (selectedProduct && value > selectedProduct.stock) value = selectedProduct.stock;
+                                  if (value < 1) value = 1;
+                                  formik.setFieldValue(`items[${idx}].quantity`, value);
+                                }}
+                                sx={{ width: '100%' }}
+                                inputProps={{ min: 1, max: maxQty }}
+                                error={qtyError}
+                                helperText={!isOutOfStock && qtyError ? `Stock max : ${maxQty}` : ''}
+                                disabled={isOutOfStock}
+                                size={isMobile ? 'small' : 'medium'}
+                              />
+                              {isOutOfStock && (
+                                <Box sx={{ position: 'absolute', left: 0, right: 0, top: '100%', textAlign: 'center', color: '#d32f2f', fontSize: 13, mt: '2px' }}>
+                                  Stock max : 0
+                                </Box>
+                              )}
+                            </Box>
                             <TextField
                               label="Prix (€)"
                               name={`items[${idx}].price`}

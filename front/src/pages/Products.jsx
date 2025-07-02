@@ -98,6 +98,8 @@ const Products = () => {
     setProducts((prev) => prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)));
   };
 
+  const sortedProducts = [...products].sort((a, b) => b.id - a.id);
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
@@ -142,10 +144,10 @@ const Products = () => {
         <>
           {isMobile ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {products.length === 0 ? (
+              {sortedProducts.length === 0 ? (
                 <Alert severity="info">Aucun produit trouvé.</Alert>
               ) : (
-                products.map((product) => (
+                sortedProducts.map((product) => (
                   <Card key={product.id} sx={{ mb: 2 }}>
                     <CardContent>
                       <Typography variant="h6">{product.name}</Typography>
@@ -179,14 +181,14 @@ const Products = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {products.length === 0 ? (
+                    {sortedProducts.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={5} align="center">
                           Aucun produit trouvé.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      products.map((product) => (
+                      sortedProducts.map((product) => (
                         <TableRow key={product.id}>
                           <TableCell>{product.name}</TableCell>
                           <TableCell>{product.price} €</TableCell>

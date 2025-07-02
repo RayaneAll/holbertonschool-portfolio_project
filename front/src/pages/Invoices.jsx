@@ -166,7 +166,8 @@ const Invoices = () => {
     setError(null);
     try {
       const response = await api.get(`/invoices?page=${pageParam}&limit=${limitParam}`);
-      setInvoices(response.data.results);
+      const sortedInvoices = [...response.data.results].sort((a, b) => b.id - a.id);
+      setInvoices(sortedInvoices);
       setTotal(response.data.total);
       setPage(response.data.page);
       setLimit(response.data.limit);
@@ -183,7 +184,8 @@ const Invoices = () => {
   }, [page, limit]);
 
   const handleInvoiceAdded = (newInvoice) => {
-    setInvoices((prev) => [...prev, newInvoice]);
+    setPage(1);
+    fetchInvoices(1, limit);
   };
 
   const handleDeleteClick = (invoice) => {

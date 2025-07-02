@@ -17,24 +17,42 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 
-const StatCard = ({ title, value, icon, color }) => (
+const StatCard = ({ title, value, icon, color, symbol }) => (
   <Paper
     sx={{
-      p: 2,
+      p: 0,
       display: 'flex',
       flexDirection: 'column',
-      height: 140,
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: { xs: 150, sm: 170 },
+      width: { xs: 150, sm: 170 },
+      minWidth: 120,
+      maxWidth: 200,
+      borderRadius: 5,
+      boxShadow: 4,
+      textAlign: 'center',
+      m: { xs: 1, sm: 2 },
+      mx: 'auto',
+      position: 'relative',
     }}
   >
-    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-      <Typography color="text.secondary" gutterBottom>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
+      <Box sx={{ color: `${color}.main`, mb: 1 }}>{icon}</Box>
+      <Typography color="text.secondary" gutterBottom sx={{ fontSize: 17, fontWeight: 500 }}>
         {title}
       </Typography>
-      <Box sx={{ color: `${color}.main` }}>{icon}</Box>
+      {symbol ? (
+        <Typography component="p" variant="h3" sx={{ fontWeight: 700, fontSize: 38, lineHeight: 1, mb: 2 }}>
+          {value}
+          <span style={{ fontSize: 38, fontWeight: 700, color: '#222', verticalAlign: 'baseline', marginLeft: 2 }}>{symbol}</span>
+        </Typography>
+      ) : (
+        <Typography component="p" variant="h3" sx={{ fontWeight: 700, fontSize: 38, lineHeight: 1, mb: 2 }}>
+          {value}
+        </Typography>
+      )}
     </Box>
-    <Typography component="p" variant="h4">
-      {value}
-    </Typography>
   </Paper>
 );
 
@@ -89,37 +107,38 @@ const Dashboard = () => {
       <Typography variant="h4" gutterBottom>
         Tableau de bord
       </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={0} justifyContent="center" alignItems="center">
+        <Grid item xs={6} sm={6} md={3} display="flex" justifyContent="center" alignItems="center">
           <StatCard
             title="Total Clients"
             value={stats.totalClients}
-            icon={<PeopleIcon />}
+            icon={<PeopleIcon sx={{ fontSize: 36 }} />}
             color="primary"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3} display="flex" justifyContent="center" alignItems="center">
           <StatCard
             title="Total Produits"
             value={stats.totalProducts}
-            icon={<InventoryIcon />}
+            icon={<InventoryIcon sx={{ fontSize: 36 }} />}
             color="secondary"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3} display="flex" justifyContent="center" alignItems="center">
           <StatCard
             title="Total Factures"
             value={stats.totalInvoices}
-            icon={<ReceiptIcon />}
+            icon={<ReceiptIcon sx={{ fontSize: 36 }} />}
             color="success"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3} display="flex" justifyContent="center" alignItems="center">
           <StatCard
             title="Revenu Total"
-            value={`${stats.totalRevenue.toLocaleString()} €`}
-            icon={<MoneyIcon />}
+            value={stats.totalRevenue.toLocaleString()}
+            icon={<MoneyIcon sx={{ fontSize: 36 }} />}
             color="warning"
+            symbol="€"
           />
         </Grid>
       </Grid>

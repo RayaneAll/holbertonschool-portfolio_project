@@ -121,6 +121,8 @@ const Clients = () => {
     }
   };
 
+  const sortedClients = [...clients].sort((a, b) => b.id - a.id);
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
@@ -165,10 +167,10 @@ const Clients = () => {
         <>
           {isMobile ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {clients.length === 0 ? (
+              {sortedClients.length === 0 ? (
                 <Alert severity="info">Aucun client trouvé.</Alert>
               ) : (
-                clients.map((client) => (
+                sortedClients.map((client) => (
                   <Card key={client.id} sx={{ mb: 2 }}>
                     <CardContent>
                       <Typography variant="h6">{client.name}</Typography>
@@ -219,14 +221,14 @@ const Clients = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {clients.length === 0 ? (
+                    {sortedClients.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} align="center">
                           Aucun client trouvé.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      clients.map((client) => (
+                      sortedClients.map((client) => (
                         <TableRow key={client.id}>
                           <TableCell>{client.name}</TableCell>
                           <TableCell>{client.email}</TableCell>
