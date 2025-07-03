@@ -1,3 +1,4 @@
+// Ce fichier gère la boîte de dialogue pour ajouter un produit
 import { useState } from 'react';
 import {
   Dialog,
@@ -19,6 +20,7 @@ const validationSchema = Yup.object({
   description: Yup.string().required('Description requise').max(255, '255 caractères max'),
 });
 
+// Composant principal pour ajouter un produit
 const AddProductDialog = ({ open, onClose, onProductAdded }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

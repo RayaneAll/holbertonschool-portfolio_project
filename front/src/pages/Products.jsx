@@ -1,3 +1,4 @@
+// Ce fichier gère la page de gestion des produits
 import { useEffect, useState } from 'react';
 import {
   Box,
@@ -28,6 +29,7 @@ import api from '../services/api';
 import AddProductDialog from '../components/AddProductDialog';
 import EditProductDialog from '../components/EditProductDialog';
 
+// Composant principal de la page produits
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);

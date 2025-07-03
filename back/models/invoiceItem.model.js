@@ -1,4 +1,6 @@
+// Ce fichier définit le modèle InvoiceItem pour la base de données
 module.exports = (sequelize, DataTypes) => {
+  // Définition des champs du modèle ligne de facture
   const InvoiceItem = sequelize.define('InvoiceItem', {
     quantity: {
       type: DataTypes.INTEGER,

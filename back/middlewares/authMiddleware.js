@@ -1,5 +1,7 @@
+// Ce fichier contient le middleware d'authentification JWT
 const jwt = require('jsonwebtoken');
 
+// Vérifie la présence et la validité du token JWT
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
 
@@ -21,4 +23,5 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Export du middleware d'authentification
 module.exports = authenticateToken;

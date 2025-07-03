@@ -1,14 +1,17 @@
+// Ce fichier gère le contexte d'authentification utilisateur
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 
+// Création du contexte d'authentification
 const AuthContext = createContext(null);
 
+// Fournisseur du contexte d'authentification
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté au chargement
+    // Vérifie si l'utilisateur est déjà connecté au chargement
     const token = localStorage.getItem('token');
     if (token) {
       api.get('/auth/me')
@@ -26,6 +29,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // Fonction de connexion
   const login = async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password });
@@ -41,6 +45,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Fonction de déconnexion
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -61,6 +66,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// Hook personnalisé pour utiliser le contexte d'authentification
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

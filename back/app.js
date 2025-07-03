@@ -1,3 +1,4 @@
+// Ce fichier configure et lance l'application Express pour le backend
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -8,9 +9,10 @@ const productRoutes = require('./routes/product.routes');
 const invoiceRoutes = require('./routes/invoice.routes');
 const dashboardRoutes = require('./routes/dashboard');
 
+// Création de l'application Express
 const app = express();
 
-// Middlewares
+// Ajout des middlewares de sécurité et de gestion des routes
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
@@ -20,11 +22,12 @@ app.use('/products', productRoutes);
 app.use('/invoices', invoiceRoutes);
 app.use('/dashboard', dashboardRoutes);
 
-// Route de test
+// Route de test pour vérifier que le backend fonctionne
 app.get('/', (req, res) => {
   res.send('Backend ERP is running');
 });
 
+// Route protégée nécessitant une authentification
 app.get('/protected', authenticateToken, (req, res) => {
   res.json({
     message: 'Route protégée accessible',
@@ -32,4 +35,5 @@ app.get('/protected', authenticateToken, (req, res) => {
   });
 });
 
+// Export de l'application pour l'utiliser dans server.js
 module.exports = app;

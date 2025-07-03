@@ -1,7 +1,9 @@
+// Ce fichier gère les opérations CRUD et les relevés pour les clients
 const db = require('../models');
 const puppeteer = require('puppeteer');
 const nodemailer = require('nodemailer');
 
+// Récupère tous les clients avec pagination
 const getAllClients = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
@@ -20,6 +22,7 @@ const getAllClients = async (req, res) => {
   }
 };
 
+// Création d'un nouveau client
 const createClient = async (req, res) => {
   try {
     const { name, email, phone } = req.body;
@@ -33,6 +36,7 @@ const createClient = async (req, res) => {
   }
 };
 
+// Récupère un client par son ID
 const getClientById = async (req, res) => {
   try {
     const client = await db.Client.findByPk(req.params.id);
@@ -43,11 +47,11 @@ const getClientById = async (req, res) => {
   }
 };
 
+// Met à jour un client existant
 const updateClient = async (req, res) => {
   try {
     const client = await db.Client.findByPk(req.params.id);
     if (!client) return res.status(404).json({ error: 'Client not found' });
-
     const { name, email, phone } = req.body;
     await client.update({ name, email, phone });
     res.json(client);
@@ -56,11 +60,11 @@ const updateClient = async (req, res) => {
   }
 };
 
+// Supprime un client par son ID
 const deleteClient = async (req, res) => {
   try {
     const client = await db.Client.findByPk(req.params.id);
     if (!client) return res.status(404).json({ error: 'Client not found' });
-
     await client.destroy();
     res.json({ message: 'Client deleted' });
   } catch (err) {
@@ -68,22 +72,18 @@ const deleteClient = async (req, res) => {
   }
 };
 
-// Génération PDF du relevé de compte client
+// Génère un relevé PDF pour un client
 const downloadClientStatementPDF = async (req, res) => {
   try {
     const client = await db.Client.findByPk(req.params.id);
     if (!client) return res.status(404).json({ error: 'Client not found' });
-
-    // Récupère toutes les factures du client avec leurs items
     const invoices = await db.Invoice.findAll({
       where: { ClientId: client.id },
       order: [['date', 'ASC']],
       include: [{ model: db.InvoiceItem }],
     });
-
     const totalFactures = invoices.reduce((sum, inv) => sum + inv.total, 0);
-
-    // Template HTML moderne avec détails de chaque facture
+    // Génère le PDF avec Puppeteer
     const html = `
       <html>
       <head>
@@ -150,14 +150,11 @@ const downloadClientStatementPDF = async (req, res) => {
       </body>
       </html>
     `;
-
-    // Génération du PDF avec puppeteer
     const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
     const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
     await browser.close();
-
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="releve_client_${client.id}.pdf"`
@@ -169,24 +166,19 @@ const downloadClientStatementPDF = async (req, res) => {
   }
 };
 
-// Envoi du relevé de compte par email au client
+// Envoie le relevé de compte par email au client
 const sendClientStatementEmail = async (req, res) => {
   try {
     const client = await db.Client.findByPk(req.params.id);
     if (!client) return res.status(404).json({ error: 'Client non trouvé' });
-    
     if (!client.email) return res.status(400).json({ error: 'Le client n\'a pas d\'email.' });
-
-    // Récupère toutes les factures du client avec leurs items
     const invoices = await db.Invoice.findAll({
       where: { ClientId: client.id },
       order: [['date', 'ASC']],
       include: [{ model: db.InvoiceItem }],
     });
-
     const totalFactures = invoices.reduce((sum, inv) => sum + inv.total, 0);
-
-    // Template HTML moderne avec détails de chaque facture
+    // Génère le PDF et envoie par email
     const html = `
       <html>
       <head>
@@ -253,13 +245,6 @@ const sendClientStatementEmail = async (req, res) => {
       </body>
       </html>
     `;
-
-    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
-    await browser.close();
-
     // Config Nodemailer (Gmail)
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -268,7 +253,6 @@ const sendClientStatementEmail = async (req, res) => {
         pass: process.env.GMAIL_PASS,
       },
     });
-
     // Envoi de l'email
     await transporter.sendMail({
       from: process.env.GMAIL_USER,
@@ -282,7 +266,6 @@ const sendClientStatementEmail = async (req, res) => {
         },
       ],
     });
-
     res.status(200).json({ message: 'Relevé de compte envoyé au client avec succès.' });
   } catch (err) {
     console.error('Erreur envoi relevé email :', err);
@@ -290,6 +273,7 @@ const sendClientStatementEmail = async (req, res) => {
   }
 };
 
+// Export des fonctions de gestion des clients
 module.exports = {
   getAllClients,
   createClient,

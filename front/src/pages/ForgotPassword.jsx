@@ -1,7 +1,9 @@
+// Ce fichier gère la page de demande de réinitialisation du mot de passe
 import { useState } from 'react';
 import { Box, Button, Container, TextField, Typography, Alert, Paper } from '@mui/material';
 import api from '../services/api';
 
+// Composant principal de la page mot de passe oublié
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [success, setSuccess] = useState('');

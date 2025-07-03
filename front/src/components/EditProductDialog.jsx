@@ -1,3 +1,4 @@
+// Ce fichier gère la boîte de dialogue pour modifier un produit
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -19,6 +20,7 @@ const validationSchema = Yup.object({
   description: Yup.string().max(500, '500 caractères max'),
 });
 
+// Composant principal pour modifier un produit
 const EditProductDialog = ({ open, onClose, product, onProductUpdated }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

@@ -1,3 +1,4 @@
+// Ce fichier gère la boîte de dialogue pour modifier un client
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -18,6 +19,7 @@ const validationSchema = Yup.object({
   phone: Yup.string().required('Téléphone requis'),
 });
 
+// Composant principal pour modifier un client
 const EditClientDialog = ({ open, onClose, client, onClientUpdated }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

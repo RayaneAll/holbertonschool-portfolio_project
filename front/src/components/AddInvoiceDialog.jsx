@@ -1,3 +1,4 @@
+// Ce fichier gère la boîte de dialogue pour ajouter une facture
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -21,6 +22,7 @@ import * as Yup from 'yup';
 import api from '../services/api';
 import { useTheme } from '@mui/material/styles';
 
+// Composant principal pour ajouter une facture
 const AddInvoiceDialog = ({ open, onClose, onInvoiceAdded }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

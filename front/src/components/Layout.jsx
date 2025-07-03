@@ -1,3 +1,4 @@
+// Ce fichier définit le layout principal avec la barre latérale et le menu
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -27,6 +28,7 @@ import { useAuth } from '../context/AuthContext';
 
 const drawerWidth = 240;
 
+// Définition des éléments du menu
 const menuItems = [
   { text: 'Tableau de bord', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Clients', icon: <PeopleIcon />, path: '/clients' },
@@ -34,26 +36,31 @@ const menuItems = [
   { text: 'Factures', icon: <ReceiptIcon />, path: '/invoices' },
 ];
 
+// Composant principal du layout
 const Layout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
 
+  // Gère l'ouverture/fermeture du menu mobile
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
+  // Navigation vers une page du menu
   const handleNavigation = (path) => {
     navigate(path);
     setMobileOpen(false);
   };
 
+  // Déconnexion de l'utilisateur
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  // Définition du contenu du menu latéral
   const drawer = (
     <div>
       <Toolbar>
@@ -86,6 +93,7 @@ const Layout = ({ children }) => {
     </div>
   );
 
+  // Structure principale du layout
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
@@ -155,5 +163,6 @@ const Layout = ({ children }) => {
   );
 };
 
+// Export du composant Layout
 export default Layout;
  

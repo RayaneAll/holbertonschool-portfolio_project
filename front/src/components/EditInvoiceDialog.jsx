@@ -1,3 +1,4 @@
+// Ce fichier gère la boîte de dialogue pour modifier une facture
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -22,6 +23,7 @@ import * as Yup from 'yup';
 import api from '../services/api';
 import { useTheme } from '@mui/material/styles';
 
+// Composant principal pour modifier une facture
 const EditInvoiceDialog = ({ open, onClose, invoice, onInvoiceUpdated }) => {
   const [error, setError] = useState('');
   const [clients, setClients] = useState([]);

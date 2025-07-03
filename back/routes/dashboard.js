@@ -1,3 +1,4 @@
+// Ce fichier définit les routes du tableau de bord (statistiques)
 const express = require('express');
 const router = express.Router();
 const { Client, Product, Invoice } = require('../models');
@@ -5,6 +6,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const { Op, fn, col, literal } = require('sequelize');
 const { addMonths, format } = require('date-fns');
 
+// Route pour les statistiques globales
 router.get('/stats', authMiddleware, async (req, res) => {
   try {
     const totalClients = await Client.count();
@@ -23,12 +25,11 @@ router.get('/stats', authMiddleware, async (req, res) => {
   }
 });
 
-// Route pour le CA par mois (12 derniers mois)
+// Route pour le chiffre d'affaires par mois (12 derniers mois)
 router.get('/stats/monthly', authMiddleware, async (req, res) => {
   try {
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
-
     // Group by year-month
     const results = await Invoice.findAll({
       attributes: [
@@ -41,7 +42,6 @@ router.get('/stats/monthly', authMiddleware, async (req, res) => {
       group: [literal('month')],
       order: [[literal('month'), 'ASC']]
     });
-
     const monthlyData = [];
     for (let i = 0; i < 12; i++) {
       const d = addMonths(start, i);
@@ -58,4 +58,5 @@ router.get('/stats/monthly', authMiddleware, async (req, res) => {
   }
 });
 
+// Export du routeur dashboard
 module.exports = router;

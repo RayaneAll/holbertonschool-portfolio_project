@@ -1,5 +1,7 @@
+// Ce fichier gère les opérations CRUD pour les produits
 const db = require('../models');
 
+// Récupère tous les produits avec pagination
 const getAllProducts = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
@@ -18,6 +20,7 @@ const getAllProducts = async (req, res) => {
   }
 };
 
+// Création d'un nouveau produit
 const createProduct = async (req, res) => {
   try {
     const { name, description, price, stock } = req.body;
@@ -31,6 +34,7 @@ const createProduct = async (req, res) => {
   }
 };
 
+// Récupère un produit par son ID
 const getProductById = async (req, res) => {
   try {
     const product = await db.Product.findByPk(req.params.id);
@@ -41,11 +45,11 @@ const getProductById = async (req, res) => {
   }
 };
 
+// Met à jour un produit existant
 const updateProduct = async (req, res) => {
   try {
     const product = await db.Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
-
     const { name, description, price, stock } = req.body;
     await product.update({ name, description, price, stock });
     res.json(product);
@@ -54,11 +58,11 @@ const updateProduct = async (req, res) => {
   }
 };
 
+// Supprime un produit par son ID
 const deleteProduct = async (req, res) => {
   try {
     const product = await db.Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
-
     await product.destroy();
     res.json({ message: 'Product deleted' });
   } catch (err) {
@@ -66,6 +70,7 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+// Export des fonctions de gestion des produits
 module.exports = {
   getAllProducts,
   createProduct,

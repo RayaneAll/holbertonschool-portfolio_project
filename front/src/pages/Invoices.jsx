@@ -1,3 +1,4 @@
+// Ce fichier gère la page de gestion des factures
 import { useEffect, useState } from 'react';
 import {
   Box,
@@ -32,6 +33,7 @@ import api from '../services/api';
 import AddInvoiceDialog from '../components/AddInvoiceDialog';
 import EditInvoiceDialog from '../components/EditInvoiceDialog';
 
+// Composant pour afficher une ligne de facture avec détails
 const Row = (props) => {
   const { row, onEditClick, onDeleteClick, onEmailSent } = props;
   const [open, setOpen] = useState(false);
@@ -143,6 +145,7 @@ const Row = (props) => {
   );
 };
 
+// Composant principal de la page factures
 const Invoices = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);

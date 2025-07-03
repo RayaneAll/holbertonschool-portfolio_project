@@ -1,3 +1,4 @@
+// Ce fichier démarre le serveur Express principal
 const app = require('./app');
 const dotenv = require('dotenv');
 
@@ -18,6 +19,7 @@ const db = require('./models');
 //     console.error('Error syncing database:', err);
 //   });
 
+// Lancement du serveur sur le port défini
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

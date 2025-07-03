@@ -1,4 +1,6 @@
+// Ce fichier définit le modèle Invoice pour la base de données
 module.exports = (sequelize, DataTypes) => {
+  // Définition des champs du modèle facture
   const Invoice = sequelize.define('Invoice', {
     date: {
       type: DataTypes.DATE,

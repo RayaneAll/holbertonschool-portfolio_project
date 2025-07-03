@@ -1,3 +1,4 @@
+// Ce fichier affiche le tableau de bord avec les statistiques principales
 import { useState, useEffect } from 'react';
 import {
   Grid,
@@ -17,6 +18,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 
+// Carte statistique pour chaque indicateur
 const StatCard = ({ title, value, icon, color, symbol }) => (
   <Paper
     sx={{
@@ -56,6 +58,7 @@ const StatCard = ({ title, value, icon, color, symbol }) => (
   </Paper>
 );
 
+// Composant principal du tableau de bord
 const Dashboard = () => {
   const [stats, setStats] = useState({
     totalClients: 0,
@@ -161,4 +164,5 @@ const Dashboard = () => {
   );
 };
 
+// Export du composant Dashboard
 export default Dashboard;

@@ -1,3 +1,4 @@
+// Ce fichier gère la page de gestion des clients
 import { useEffect, useState } from 'react';
 import {
   Box,
@@ -32,6 +33,7 @@ import EditClientDialog from '../components/EditClientDialog';
 import DownloadIcon from '@mui/icons-material/Download';
 import EmailIcon from '@mui/icons-material/Email';
 
+// Composant principal de la page clients
 const Clients = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -1,3 +1,4 @@
+// Ce fichier initialise les modèles et les relations de la base de données
 const sequelize = require('../config/database');
 const { DataTypes } = require('sequelize');
 
@@ -9,7 +10,7 @@ const Invoice = require('./invoice.model')(sequelize, DataTypes);
 const InvoiceItem = require('./invoiceItem.model')(sequelize, DataTypes);
 const PasswordResetToken = require('./passwordResetToken.model')(sequelize, DataTypes);
 
-// Relations
+// Définition des relations entre les modèles
 Client.hasMany(Invoice);
 Invoice.belongsTo(Client);
 
@@ -22,6 +23,7 @@ InvoiceItem.belongsTo(Product);
 User.hasMany(PasswordResetToken);
 PasswordResetToken.belongsTo(User);
 
+// Objet db exporté pour accéder aux modèles et à la connexion
 const db = {
   sequelize,
   Sequelize: sequelize,

@@ -1,8 +1,10 @@
+// Ce fichier gère la page de réinitialisation du mot de passe
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Box, Button, Container, TextField, Typography, Alert, Paper } from '@mui/material';
 import api from '../services/api';
 
+// Composant principal de la page de réinitialisation
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

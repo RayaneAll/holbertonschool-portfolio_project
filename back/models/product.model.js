@@ -1,4 +1,6 @@
+// Ce fichier définit le modèle Product pour la base de données
 module.exports = (sequelize, DataTypes) => {
+  // Définition des champs du modèle produit
   const Product = sequelize.define('Product', {
     name: {
       type: DataTypes.STRING,

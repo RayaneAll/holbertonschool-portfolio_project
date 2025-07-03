@@ -1,3 +1,4 @@
+// Ce fichier gère la boîte de dialogue pour ajouter un client
 import { useState } from 'react';
 import {
   Dialog,
@@ -19,6 +20,7 @@ const validationSchema = Yup.object({
   phone: Yup.string().required('Téléphone requis'),
 });
 
+// Composant principal pour ajouter un client
 const AddClientDialog = ({ open, onClose, onClientAdded }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

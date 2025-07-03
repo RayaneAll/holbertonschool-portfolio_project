@@ -1,4 +1,6 @@
+// Ce fichier définit le modèle User pour la base de données
 module.exports = (sequelize, DataTypes) => {
+  // Définition des champs du modèle utilisateur
   const User = sequelize.define('User', {
     email: {
       type: DataTypes.STRING,
