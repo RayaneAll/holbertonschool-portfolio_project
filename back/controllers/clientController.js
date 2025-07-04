@@ -178,7 +178,7 @@ const sendClientStatementEmail = async (req, res) => {
       include: [{ model: db.InvoiceItem }],
     });
     const totalFactures = invoices.reduce((sum, inv) => sum + inv.total, 0);
-    // Génère le PDF et envoie par email
+    // Génère le PDF avec Puppeteer
     const html = `
       <html>
       <head>
@@ -245,6 +245,11 @@ const sendClientStatementEmail = async (req, res) => {
       </body>
       </html>
     `;
+    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
+    await browser.close();
     // Config Nodemailer (Gmail)
     const transporter = nodemailer.createTransport({
       service: 'gmail',
