@@ -206,17 +206,7 @@ holbertonschool-portfolio_project/
 
 ---
 
-## 8. Conseils de développement
-
-- **Respecter la structure des dossiers** pour la clarté et la maintenabilité.
-- **Utiliser les dialogues** pour toutes les modifications/ajouts côté front.
-- **Vérifier les logs backend** en cas d'erreur 500 ou d'envoi d'email.
-- **Sécuriser les routes** et ne jamais exposer d'informations sensibles côté client.
-- **Faire attention à la gestion des tokens** (expiration, suppression à la déconnexion).
-
----
-
-## 9. Améliorations possibles
+## 8. Améliorations possibles
 
 - Ajout de tests unitaires (Jest, Supertest...)
 - Gestion des rôles utilisateurs (admin, user...)
@@ -224,7 +214,3 @@ holbertonschool-portfolio_project/
 - Export CSV/Excel
 - Internationalisation (i18n)
 - Déploiement sur le cloud (Heroku, Vercel...)
-
----
-
-**Pour toute question sur une partie précise du code ou du fonctionnement, n'hésite pas à demander !**
