@@ -28,7 +28,15 @@ const createProduct = async (req, res) => {
     res.status(201).json(product);
   } catch (err) {
     if (err.name === 'SequelizeUniqueConstraintError') {
-      return res.status(409).json({ error: "Un produit avec cette description existe déjà." });
+      // On vérifie quel champ est en doublon
+      if (err.errors && err.errors[0] && err.errors[0].path === 'name') {
+        return res.status(409).json({ error: "Un produit avec ce nom existe déjà." });
+      }
+      if (err.errors && err.errors[0] && err.errors[0].path === 'description') {
+        return res.status(409).json({ error: "Un produit avec cette description existe déjà." });
+      }
+      // Message générique si on ne sait pas
+      return res.status(409).json({ error: "Un produit existe déjà avec une valeur unique identique." });
     }
     res.status(500).json({ error: 'Error creating product' });
   }
@@ -54,6 +62,15 @@ const updateProduct = async (req, res) => {
     await product.update({ name, description, price, stock });
     res.json(product);
   } catch (err) {
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      if (err.errors && err.errors[0] && err.errors[0].path === 'name') {
+        return res.status(409).json({ error: "Un produit avec ce nom existe déjà." });
+      }
+      if (err.errors && err.errors[0] && err.errors[0].path === 'description') {
+        return res.status(409).json({ error: "Un produit avec cette description existe déjà." });
+      }
+      return res.status(409).json({ error: "Un produit existe déjà avec une valeur unique identique." });
+    }
     res.status(500).json({ error: 'Error updating product' });
   }
 };

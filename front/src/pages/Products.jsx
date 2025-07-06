@@ -69,7 +69,9 @@ const Products = () => {
   }, [page, limit]);
 
   const handleProductAdded = (newProduct) => {
-    setProducts((prev) => [...prev, newProduct]);
+    // Recharge la liste complète après ajout
+    fetchProducts(1, limit); // On revient à la première page pour voir le dernier produit ajouté en haut
+    setPage(1);
   };
 
   const handleDeleteClick = (product) => {
@@ -83,7 +85,8 @@ const Products = () => {
     setDeleteError('');
     try {
       await api.delete(`/products/${productToDelete.id}`);
-      setProducts((prev) => prev.filter((p) => p.id !== productToDelete.id));
+      setPage(1);
+      fetchProducts(1, limit);
       setDeleteDialogOpen(false);
       setProductToDelete(null);
     } catch (err) {

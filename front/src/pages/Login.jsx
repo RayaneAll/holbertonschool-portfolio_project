@@ -62,80 +62,80 @@ const Login = () => {
       component="main"
       maxWidth="xs"
       disableGutters
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        background: '#222',
-      }}
-    >
-      <Paper
-        elevation={3}
         sx={{
-          padding: 4,
+        minHeight: '100vh',
           display: 'flex',
-          flexDirection: 'column',
+        justifyContent: 'center',
           alignItems: 'center',
-          width: '100%',
+        background: '#222',
         }}
       >
-        <Typography component="h1" variant="h5">
-          Connexion
-        </Typography>
-        {error && (
-          <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
-            {error}
-          </Alert>
-        )}
-        <Box
-          component="form"
-          onSubmit={formik.handleSubmit}
-          sx={{ mt: 1, width: '100%' }}
+        <Paper
+          elevation={3}
+          sx={{
+            padding: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+          }}
         >
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email"
-            name="email"
-            autoComplete="email"
-            autoFocus
-            value={formik.values.email}
-            onChange={formik.handleChange}
-            error={formik.touched.email && Boolean(formik.errors.email)}
-            helperText={formik.touched.email && formik.errors.email}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Mot de passe"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            value={formik.values.password}
-            onChange={formik.handleChange}
-            error={formik.touched.password && Boolean(formik.errors.password)}
-            helperText={formik.touched.password && formik.errors.password}
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+          <Typography component="h1" variant="h5">
+            Connexion
+          </Typography>
+          {error && (
+            <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
+              {error}
+            </Alert>
+          )}
+          <Box
+            component="form"
+            onSubmit={formik.handleSubmit}
+            sx={{ mt: 1, width: '100%' }}
           >
-            Se connecter
-          </Button>
-        </Box>
-        <Box sx={{ mt: 2, width: '100%', textAlign: 'right' }}>
-          <Link to="/forgot-password" style={{ color: '#1976d2', textDecoration: 'none', fontSize: 14 }}>
-            Mot de passe oublié ?
-          </Link>
-        </Box>
-      </Paper>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              error={formik.touched.email && Boolean(formik.errors.email)}
+              helperText={formik.touched.email && formik.errors.email}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Mot de passe"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              error={formik.touched.password && Boolean(formik.errors.password)}
+              helperText={formik.touched.password && formik.errors.password}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Se connecter
+            </Button>
+          </Box>
+          <Box sx={{ mt: 2, width: '100%', textAlign: 'right' }}>
+            <Link to="/forgot-password" style={{ color: '#1976d2', textDecoration: 'none', fontSize: 14 }}>
+              Mot de passe oublié ?
+            </Link>
+          </Box>
+        </Paper>
     </Container>
   );
 };

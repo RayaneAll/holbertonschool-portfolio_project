@@ -43,8 +43,8 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <AuthProvider>
-        <Router>
-          <Routes>
+    <Router>
+      <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
@@ -81,8 +81,8 @@ function App() {
               }
             />
             <Route path="/" element={<Navigate to="/dashboard" />} />
-          </Routes>
-        </Router>
+      </Routes>
+    </Router>
       </AuthProvider>
     </ThemeProvider>
   );

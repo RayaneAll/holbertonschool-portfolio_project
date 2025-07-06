@@ -202,7 +202,8 @@ const Invoices = () => {
     setDeleteError('');
     try {
       await api.delete(`/invoices/${invoiceToDelete.id}`);
-      setInvoices((prev) => prev.filter((inv) => inv.id !== invoiceToDelete.id));
+      setPage(1);
+      fetchInvoices(1, limit);
       setDeleteDialogOpen(false);
       setInvoiceToDelete(null);
     } catch (err) {

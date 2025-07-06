@@ -75,7 +75,8 @@ const Clients = () => {
   }, [page, limit]);
 
   const handleClientAdded = (newClient) => {
-    setClients((prev) => [...prev, newClient]);
+    setPage(1);
+    fetchClients(1, limit);
   };
 
   const handleDeleteClick = (client) => {
@@ -89,7 +90,8 @@ const Clients = () => {
     setDeleteError('');
     try {
       await api.delete(`/clients/${clientToDelete.id}`);
-      setClients((prev) => prev.filter((c) => c.id !== clientToDelete.id));
+      setPage(1);
+      fetchClients(1, limit);
       setDeleteDialogOpen(false);
       setClientToDelete(null);
     } catch (err) {
@@ -122,8 +124,6 @@ const Clients = () => {
       setSendingEmails(prev => ({ ...prev, [client.id]: false }));
     }
   };
-
-  const sortedClients = [...clients].sort((a, b) => b.id - a.id);
 
   return (
     <Box>
@@ -169,10 +169,10 @@ const Clients = () => {
         <>
           {isMobile ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {sortedClients.length === 0 ? (
+              {clients.length === 0 ? (
                 <Alert severity="info">Aucun client trouvé.</Alert>
               ) : (
-                sortedClients.map((client) => (
+                clients.map((client) => (
                   <Card key={client.id} sx={{ mb: 2 }}>
                     <CardContent>
                       <Typography variant="h6">{client.name}</Typography>
@@ -223,14 +223,14 @@ const Clients = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {sortedClients.length === 0 ? (
+                    {clients.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} align="center">
                           Aucun client trouvé.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      sortedClients.map((client) => (
+                      clients.map((client) => (
                         <TableRow key={client.id}>
                           <TableCell>{client.name}</TableCell>
                           <TableCell>{client.email}</TableCell>

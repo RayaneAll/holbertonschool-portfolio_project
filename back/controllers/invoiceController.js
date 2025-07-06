@@ -9,7 +9,8 @@ const getAllInvoices = async (req, res) => {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const offset = (page - 1) * limit;
-    const { count, rows } = await db.Invoice.findAndCountAll({
+    const total = await db.Invoice.count();
+    const rows = await db.Invoice.findAll({
       offset,
       limit,
       order: [['id', 'DESC']],
@@ -20,9 +21,9 @@ const getAllInvoices = async (req, res) => {
     });
     res.json({
       results: rows,
-      total: count,
+      total,
       page,
-      totalPages: Math.ceil(count / limit),
+      totalPages: Math.ceil(total / limit),
       limit
     });
   } catch (err) {

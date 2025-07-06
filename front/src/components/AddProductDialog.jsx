@@ -43,7 +43,7 @@ const AddProductDialog = ({ open, onClose, onProductAdded }) => {
         onClose();
       } catch (err) {
         if (err.response?.status === 409) {
-          setError("Un produit avec cette description existe déjà.");
+          setError(err.response?.data?.error || "Conflit lors de l'ajout du produit.");
         } else {
           setError(err.response?.data?.message || "Erreur lors de l'ajout du produit");
         }

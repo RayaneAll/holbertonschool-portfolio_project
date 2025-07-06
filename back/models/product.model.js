@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
     name: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
     price: {
       type: DataTypes.FLOAT,
@@ -17,7 +18,6 @@ module.exports = (sequelize, DataTypes) => {
     description: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
   });
 
